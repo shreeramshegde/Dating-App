@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-hinge-cream text-hinge-black min-h-screen font-sans antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3, .font-serif {
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #FAF7F2;
+}
+::-webkit-scrollbar-thumb {
+  background: #D9D2C5;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #121212;
+}
+
+/* Hinge signature card styles */
+.hinge-card {
+  background: #FFFFFF;
+  border: 1px solid #E6E0D6;
+  box-shadow: 0 4px 20px -2px rgba(20, 20, 20, 0.05);
+}
+
+.hinge-prompt-card {
+  background: #FFFFFF;
+  border: 1px solid #E4DDD2;
+  border-radius: 24px;
+}
+
+.hinge-tag {
+  background: #F3EFE6;
+  color: #1A1A1A;
+  border: 1px solid #E3DDD3;
+}
