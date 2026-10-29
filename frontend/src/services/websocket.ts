@@ -12,42 +12,49 @@ class WebSocketService {
   connect(token: string | null) {
     if (this.client && this.isConnected) return;
 
-    this.client = new Client({
-      webSocketFactory: () => new SockJS(WS_BASE_URL),
-      connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
-    });
-
-    this.client.onConnect = () => {
-      this.isConnected = true;
-      console.log('[WebSocket] Connected to STOMP broker');
-
-      // Subscribe to personal notification queue (e.g. instant match popup)
-      this.client?.subscribe('/user/queue/notifications', (frame) => {
-        try {
-          const notification = JSON.parse(frame.body);
-          this.matchNotificationListeners.forEach((listener) => listener(notification));
-        } catch (e) {
-          console.error('[WebSocket] Notification parse error:', e);
-        }
-      });
-    };
-
-    this.client.onDisconnect = () => {
-      this.isConnected = false;
-      console.log('[WebSocket] Disconnected');
-    };
-
-    this.client.onStompError = (frame) => {
-      console.warn('[WebSocket] STOMP broker error:', frame.headers['message']);
-    };
-
     try {
+      this.client = new Client({
+        webSocketFactory: () => {
+          try {
+            return new SockJS(WS_BASE_URL);
+          } catch (err) {
+            console.warn('[WebSocket] SockJS creation error:', err);
+            return null as any;
+          }
+        },
+        connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
+        reconnectDelay: 5000,
+        heartbeatIncoming: 4000,
+        heartbeatOutgoing: 4000,
+      });
+
+      this.client.onConnect = () => {
+        this.isConnected = true;
+        console.log('[WebSocket] Connected to STOMP broker');
+
+        // Subscribe to personal notification queue (e.g. instant match popup)
+        this.client?.subscribe('/user/queue/notifications', (frame) => {
+          try {
+            const notification = JSON.parse(frame.body);
+            this.matchNotificationListeners.forEach((listener) => listener(notification));
+          } catch (e) {
+            console.error('[WebSocket] Notification parse error:', e);
+          }
+        });
+      };
+
+      this.client.onDisconnect = () => {
+        this.isConnected = false;
+        console.log('[WebSocket] Disconnected');
+      };
+
+      this.client.onStompError = (frame) => {
+        console.warn('[WebSocket] STOMP broker error:', frame.headers['message']);
+      };
+
       this.client.activate();
     } catch (err) {
-      console.warn('[WebSocket] Activation failed (backend may be offline):', err);
+      console.warn('[WebSocket] Activation failed:', err);
     }
   }
 
