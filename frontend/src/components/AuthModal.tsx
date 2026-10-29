@@ -41,7 +41,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const handleDemoLogin = async () => {
     setIsLoading(true);
     try {
-      const res = await api.login('demo@hinge.co', 'password123');
+      const res = await api.login('demo@lostandfound.app', 'password123');
       onSuccess(res);
     } catch {
       // Fallback
@@ -58,7 +58,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       >
         <div className="flex items-center justify-between">
           <span className="font-serif font-black text-3xl tracking-tight text-hinge-black">
-            hinge
+            lost & found
           </span>
           <button
             onClick={onClose}
@@ -146,7 +146,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           {isSignUp ? (
             <span>Already have an account? <button type="button" onClick={() => setIsSignUp(false)} className="text-hinge-black font-bold hover:underline">Sign In</button></span>
           ) : (
-            <span>New to Hinge? <button type="button" onClick={() => setIsSignUp(true)} className="text-hinge-black font-bold hover:underline">Create one</button></span>
+            <span>New to Lost & Found? <button type="button" onClick={() => setIsSignUp(true)} className="text-hinge-black font-bold hover:underline">Create one</button></span>
           )}
         </div>
       </div>

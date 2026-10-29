@@ -28,14 +28,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-40 w-full bg-hinge-cream/95 backdrop-blur-md border-b border-hinge-border">
       <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Hinge Logo */}
+        {/* Lost & Found Logo */}
         <div 
           onClick={onGoToLanding} 
           className="flex items-center gap-2 cursor-pointer group select-none"
-          title="Back to Hinge Homepage"
+          title="Back to Lost & Found Homepage"
         >
           <span className="font-serif font-black text-2xl tracking-tight text-hinge-black">
-            hinge
+            lost & found
           </span>
           <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-hinge-stone text-neutral-700 border border-hinge-border">
             app

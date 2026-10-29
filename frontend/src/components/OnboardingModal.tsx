@@ -100,7 +100,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
       >
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="font-serif font-black text-2xl tracking-tight text-hinge-black">hinge</span>
+            <span className="font-serif font-black text-2xl tracking-tight text-hinge-black">lost & found</span>
             <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-hinge-stone text-neutral-700">
               Onboarding
             </span>

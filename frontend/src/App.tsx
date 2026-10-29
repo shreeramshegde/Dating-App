@@ -117,7 +117,7 @@ export function App() {
     setCurrentUser(updated);
   };
 
-  // If in Landing Page mode (like hinge.co):
+  // If in Landing Page mode (Lost & Found marketing site):
   if (viewMode === 'landing') {
     return (
       <>

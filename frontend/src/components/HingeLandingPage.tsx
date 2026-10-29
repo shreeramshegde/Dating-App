@@ -51,7 +51,7 @@ export const HingeLandingPage: React.FC<HingeLandingPageProps> = ({
           {/* Logo */}
           <div className="flex items-center gap-3">
             <span className="font-serif font-black text-3xl tracking-tight text-hinge-black">
-              hinge
+              lost & found
             </span>
             <span className="hidden sm:inline-block text-[11px] font-semibold text-hinge-muted uppercase tracking-widest pl-3 border-l border-hinge-border">
               The dating app designed to be deleted<sup className="text-[8px]">®</sup>
@@ -101,7 +101,7 @@ export const HingeLandingPage: React.FC<HingeLandingPageProps> = ({
             </h1>
 
             <p className="text-lg sm:text-xl text-neutral-700 font-normal leading-relaxed max-w-xl">
-              Hinge is built on the belief that anyone looking for love should be able to find it. We replaced rapid swiping with thoughtful prompts, voice notes, and intentional conversations.
+              Lost & Found is built on the belief that anyone looking for love should be able to find it. We replaced rapid swiping with thoughtful prompts, voice notes, and intentional conversations.
             </p>
 
             <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
@@ -208,7 +208,7 @@ export const HingeLandingPage: React.FC<HingeLandingPageProps> = ({
                   </div>
                 </div>
 
-                {/* Simulated Hinge Prompt Card */}
+                {/* Simulated Lost & Found Prompt Card */}
                 <div className="p-3.5 rounded-2xl bg-white border border-hinge-border shadow-subtle relative group">
                   <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
                     Prompt
@@ -244,7 +244,7 @@ export const HingeLandingPage: React.FC<HingeLandingPageProps> = ({
               Dating apps shouldn't feel like a slot machine.
             </h2>
             <p className="text-base text-neutral-600 leading-relaxed">
-              Most dating apps keep you swiping endlessly for ad revenue. Hinge is different: every single feature is designed to get you off your phone and out on an unforgettable date.
+              Most dating apps keep you swiping endlessly for ad revenue. Lost & Found is different: every single feature is designed to get you off your phone and out on an unforgettable date.
             </p>
           </div>
 
@@ -315,7 +315,7 @@ export const HingeLandingPage: React.FC<HingeLandingPageProps> = ({
             The secret to getting 3x more replies
           </h2>
           <p className="text-sm text-neutral-600 max-w-lg mx-auto">
-            Hinge prompts are open questions designed to showcase your unique story. Click below to shuffle popular conversation starters:
+            Lost & Found prompts are open questions designed to showcase your unique story. Click below to shuffle popular conversation starters:
           </p>
         </div>
 
@@ -354,7 +354,7 @@ export const HingeLandingPage: React.FC<HingeLandingPageProps> = ({
         </div>
       </section>
 
-      {/* 5. Real Couples Who Deleted Hinge */}
+      {/* 5. Real Couples Who Deleted Lost & Found */}
       <section id="stories" className="py-20 bg-hinge-stone/50 border-t border-hinge-border px-5">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-3">
@@ -365,7 +365,7 @@ export const HingeLandingPage: React.FC<HingeLandingPageProps> = ({
               They found love. Then deleted us.
             </h2>
             <p className="text-sm text-neutral-600 max-w-md mx-auto">
-              Over thousands of couples get married or move in together every month after meeting on Hinge.
+              Over thousands of couples get married or move in together every month after meeting on Lost & Found.
             </p>
           </div>
 
@@ -389,7 +389,7 @@ export const HingeLandingPage: React.FC<HingeLandingPageProps> = ({
                 </div>
                 <div>
                   <h4 className="text-xs font-bold text-hinge-black">Chloe & Liam</h4>
-                  <p className="text-[11px] text-neutral-500">Deleted Hinge in London</p>
+                  <p className="text-[11px] text-neutral-500">Deleted Lost & Found in London</p>
                 </div>
               </div>
             </div>
@@ -413,7 +413,7 @@ export const HingeLandingPage: React.FC<HingeLandingPageProps> = ({
                 </div>
                 <div>
                   <h4 className="text-xs font-bold text-hinge-black">Maya & Julian</h4>
-                  <p className="text-[11px] text-neutral-500">Deleted Hinge in Brooklyn</p>
+                  <p className="text-[11px] text-neutral-500">Deleted Lost & Found in Brooklyn</p>
                 </div>
               </div>
             </div>
@@ -424,7 +424,7 @@ export const HingeLandingPage: React.FC<HingeLandingPageProps> = ({
                   Engaged
                 </span>
                 <p className="font-serif italic text-lg text-hinge-black leading-snug">
-                  "Hinge's 'Most Compatible' recommendation introduced us on a Tuesday. We have been inseparable ever since our first coffee date."
+                  "Lost & Found's 'Most Compatible' recommendation introduced us on a Tuesday. We have been inseparable ever since our first coffee date."
                 </p>
               </div>
               <div className="pt-4 border-t border-neutral-100 flex items-center gap-3">
@@ -437,7 +437,7 @@ export const HingeLandingPage: React.FC<HingeLandingPageProps> = ({
                 </div>
                 <div>
                   <h4 className="text-xs font-bold text-hinge-black">Sam & Elena</h4>
-                  <p className="text-[11px] text-neutral-500">Deleted Hinge in San Francisco</p>
+                  <p className="text-[11px] text-neutral-500">Deleted Lost & Found in San Francisco</p>
                 </div>
               </div>
             </div>
@@ -483,8 +483,8 @@ export const HingeLandingPage: React.FC<HingeLandingPageProps> = ({
       <footer className="mt-auto bg-hinge-cream border-t border-hinge-border py-12 px-5 text-xs text-neutral-600">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <span className="font-serif font-black text-2xl text-hinge-black">hinge</span>
-            <span className="text-[11px] text-neutral-500">© 2026 Hinge, Inc. The dating app designed to be deleted.</span>
+            <span className="font-serif font-black text-2xl text-hinge-black">lost & found</span>
+            <span className="text-[11px] text-neutral-500">© 2026 Lost & Found, Inc. The dating app designed to be deleted.</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-6 font-medium text-neutral-700">
@@ -505,10 +505,10 @@ export const HingeLandingPage: React.FC<HingeLandingPageProps> = ({
               <Smartphone className="w-6 h-6" />
             </div>
             <h3 className="font-serif font-bold text-xl text-hinge-black">
-              Scan to download Hinge
+              Scan to download Lost & Found
             </h3>
             <p className="text-xs text-neutral-600">
-              Point your smartphone camera at the QR code below to install Hinge directly onto your device.
+              Point your smartphone camera at the QR code below to install Lost & Found directly onto your device.
             </p>
 
             <div className="p-6 rounded-2xl bg-hinge-cream border border-hinge-border inline-block mx-auto">
