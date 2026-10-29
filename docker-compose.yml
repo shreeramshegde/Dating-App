@@ -6,16 +6,9 @@ services:
     container_name: dating-backend
     restart: unless-stopped
     ports:
-      - "8080:8080"
-    environment:
-      - SERVER_PORT=8080
-      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL:-jdbc:postgresql://ep-orange-resonance-b4oijt5d-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require}
-      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME:-neondb_owner}
-      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD:-npg_9YlQoWO0gpav}
-      - AWS_ENDPOINT_URL_S3=${AWS_ENDPOINT_URL_S3:-https://br-tiny-dream-b45jaadl.storage.c-6.us-east-2.aws.neon.tech}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-nak_live_a64320a1a3eb476fbf36be8fc0b24006}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-nsk_live_ecd44986ca855abc40d4bb03229ef0d8328a89f3cf5167e2d99e24d052bdf478}
-      - AWS_REGION=${AWS_REGION:-us-east-2}
-      - AWS_S3_BUCKET=${AWS_S3_BUCKET:-photos}
-      - JWT_SECRET=${JWT_SECRET:-dGhpcy1pcy1hLXZlcnktc3Ryb25nLXNlY3JldC1rZXktZm9yLWRhdGluZy1hcHAtbXZwLTIwMjYtc3ByaW5nLWJvb3Q=}
-      - JWT_EXPIRATION_MS=${JWT_EXPIRATION_MS:-86400000}
+      - "${SERVER_PORT:-8080}:8080"
+    env_file:
+      - path: .env.local
+        required: false
+      - path: .env
+        required: false
