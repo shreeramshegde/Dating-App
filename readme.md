@@ -52,11 +52,11 @@ flowchart TD
 
     UI --> Nginx
     WSClient --> Nginx
-    Nginx -->|/ (Static Files)| FrontContainer
-    Nginx -->|/api/* & /ws/*| BackContainer
-    BackContainer -->|JDBC (SSL)| NeonPool
+    Nginx -->|"/ (Static Files)"| FrontContainer
+    Nginx -->|"/api/* and /ws/*"| BackContainer
+    BackContainer -->|"JDBC (SSL)"| NeonPool
     NeonPool --> PostgresDB
-    BackContainer -->|Pre-signed URLs / Uploads| S3
+    BackContainer -->|"Pre-signed URLs / Uploads"| S3
 ```
 
 ---
@@ -376,8 +376,8 @@ public SwipeResultDto processSwipe(UUID swiperId, UUID targetId, SwipeType type)
 stateDiagram-v2
     [*] --> ExploreDeck: Authenticated
     ExploreDeck --> SwipeCard: User Drags Card
-    SwipeCard --> LikeAction: Drag Right > Threshold
-    SwipeCard --> PassAction: Drag Left > Threshold
+    SwipeCard --> LikeAction: Drag Right over Threshold
+    SwipeCard --> PassAction: Drag Left over Threshold
     
     LikeAction --> MatchModal: Mutual Match Detected!
     LikeAction --> NextCard: No Match Yet
@@ -551,23 +551,23 @@ For a cost-effective, maintainable MVP deployment on AWS, we evaluate two recomm
 ```mermaid
 flowchart LR
     subgraph Option1 ["Recommended: Cost-Effective EC2 + Docker Compose (~$15-20/mo)"]
-        User1[User Browser] --> Route53_1[Route 53 DNS]
-        Route53_1 --> EC2[AWS EC2 t3.small / t4g.small]
+        User1["User Browser"] --> Route53_1["Route 53 DNS"]
+        Route53_1 --> EC2["AWS EC2 t3.small / t4g.small"]
         subgraph EC2Instance ["EC2 Host"]
-            Certbot[Certbot SSL Let's Encrypt]
-            DockerCompose[Docker Compose: Nginx + Frontend + Spring Boot]
+            Certbot["Certbot SSL Let's Encrypt"]
+            DockerCompose["Docker Compose: Nginx + Frontend + Spring Boot"]
         end
-        EC2 --> Neon1[(Neon DB Serverless)]
-        EC2 --> S3_1[AWS S3 Photos]
+        EC2 --> Neon1[("Neon DB Serverless")]
+        EC2 --> S3_1["AWS S3 Photos"]
     end
 
     subgraph Option2 ["Enterprise Scalable: AWS ECS Fargate + ALB (~$50+/mo)"]
-        User2[User Browser] --> Route53_2[Route 53]
-        Route53_2 --> ALB[Application Load Balancer]
-        ALB --> ECSFront[ECS Fargate: Frontend Tasks]
-        ALB --> ECSBack[ECS Fargate: Spring Boot Tasks]
-        ECSBack --> Neon2[(Neon DB Serverless)]
-        ECSBack --> S3_2[AWS S3 Photos]
+        User2["User Browser"] --> Route53_2["Route 53"]
+        Route53_2 --> ALB["Application Load Balancer"]
+        ALB --> ECSFront["ECS Fargate: Frontend Tasks"]
+        ALB --> ECSBack["ECS Fargate: Spring Boot Tasks"]
+        ECSBack --> Neon2[("Neon DB Serverless")]
+        ECSBack --> S3_2["AWS S3 Photos"]
     end
 ```
 
