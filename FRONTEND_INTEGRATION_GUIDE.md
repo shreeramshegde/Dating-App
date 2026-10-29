@@ -7,6 +7,9 @@
 ## 1. Quick Start & Connection Details
 
 * **Backend Local Base URL:** `http://localhost:8080`
+* **Interactive Swagger UI:** `http://localhost:8080/swagger-ui/index.html` (or `http://localhost:8080/swagger-ui.html`)
+* **OpenAPI Specification (JSON):** `http://localhost:8080/v3/api-docs`
+* **Health Check Endpoint:** `http://localhost:8080/health`
 * **WebSocket Endpoint:** `http://localhost:8080/ws` (SockJS fallback enabled)
 * **Auth Scheme:** Stateless JWT (`Authorization: Bearer <token>`)
 * **Default Content-Type:** `application/json`
