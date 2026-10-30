@@ -110,12 +110,14 @@ echo ""
 if command -v docker >/dev/null 2>&1; then
     echo "Checking Docker containers..."
 
-    # Crucial: remove any existing container named 'dating-frontend' (running or stopped)
+    # Crucial: remove any existing container named 'meaowmatch-frontend' or 'dating-frontend'
     # to completely prevent 'Conflict: container name is already in use' daemon error
-    if docker ps -a --format '{{.Names}}' | grep -q "^dating-frontend$"; then
-        echo "Clearing existing 'dating-frontend' container to prevent Docker naming conflict..."
-        docker rm -f dating-frontend >/dev/null 2>&1 || true
-    fi
+    for cname in "meaowmatch-frontend" "dating-frontend"; do
+        if docker ps -a --format '{{.Names}}' | grep -q "^${cname}$"; then
+            echo "Clearing existing '${cname}' container to prevent Docker naming conflict..."
+            docker rm -f "${cname}" >/dev/null 2>&1 || true
+        fi
+    done
 
     # Check if frontend docker-compose exists
     if [ -f "${FRONTEND_DIR}/docker-compose.yml" ]; then
@@ -131,9 +133,9 @@ if command -v docker >/dev/null 2>&1; then
         docker build \
             --build-arg VITE_API_BASE_URL="${API_BASE_URL}" \
             --build-arg VITE_WS_URL="${WS_URL}" \
-            -t dating-frontend "${FRONTEND_DIR}"
-        docker run -d --name dating-frontend -p "${FRONTEND_PORT:-3000}:80" --restart unless-stopped dating-frontend
-        echo "dating-frontend container running on port ${FRONTEND_PORT:-3000}!"
+            -t meaowmatch-frontend "${FRONTEND_DIR}"
+        docker run -d --name meaowmatch-frontend -p "${FRONTEND_PORT:-3000}:80" --restart unless-stopped meaowmatch-frontend
+        echo "meaowmatch-frontend container running on port ${FRONTEND_PORT:-3000}!"
     fi
 fi
 

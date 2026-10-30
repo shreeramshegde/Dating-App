@@ -1,6 +1,6 @@
-# AWS EC2 Free Tier Frontend Deployment Guide
+# AWS EC2 Free Tier Frontend Deployment Guide - MeaowMatch
 
-This guide provides end-to-end instructions for deploying the **React + Vite + Nginx** Dating App Frontend container on an **AWS EC2 Free Tier** instance.
+This guide provides end-to-end instructions for deploying the **React + Vite + Nginx** MeaowMatch Frontend container on an **AWS EC2 Free Tier** instance.
 
 ---
 
@@ -10,11 +10,11 @@ This guide provides end-to-end instructions for deploying the **React + Vite + N
 2. Select your AWS region (e.g., `ap-south-1` (Mumbai), `us-east-1` (N. Virginia), etc. — ideally the **same region** as your backend EC2 instance for lowest latency).
 3. Navigate to **EC2** > **Instances** > **Launch instances**.
 4. Configure the instance settings:
-   - **Name**: `dating-app-frontend`
+   - **Name**: `meaowmatch-frontend`
    - **Application and OS Images (AMI)**: **Ubuntu Server 24.04 LTS (HVM), SSD Volume Type** (64-bit x86).
    - **Instance type**: `t2.micro` (or `t3.micro` if eligible in your region) — **Free tier eligible** (750 hours/month).
    - **Key pair (login)**:
-     - Select your existing `dating-app-ec2-key` or click **Create new key pair** (`RSA`, `.pem`).
+     - Select your existing `meaowmatch-ec2-key` or click **Create new key pair** (`RSA`, `.pem`).
      - Save the `.pem` file on your local machine.
    - **Network settings (Security Group)**:
      - Choose **Create security group**.
@@ -31,7 +31,7 @@ This guide provides end-to-end instructions for deploying the **React + Vite + N
 
 The frontend container serves traffic on port **`3000`** (and optionally port `80`):
 
-1. In the EC2 Console, go to **Instances** and select your running `dating-app-frontend` instance.
+1. In the EC2 Console, go to **Instances** and select your running `meaowmatch-frontend` instance.
 2. In the bottom panel, click **Security** > click the Security Group link (`sg-xxxxxxxxx`).
 3. Under **Inbound rules**, click **Edit inbound rules**.
 4. Verify or add the following inbound rules:
@@ -53,10 +53,10 @@ From your local machine terminal:
 
 ```bash
 # 1. Set read-only permissions on key pair
-chmod 400 ~/Downloads/dating-app-ec2-key.pem
+chmod 400 ~/Downloads/meaowmatch-ec2-key.pem
 
 # 2. Connect via SSH (replace with your Frontend EC2 Public IPv4)
-ssh -i ~/Downloads/dating-app-ec2-key.pem ubuntu@<YOUR_FRONTEND_EC2_PUBLIC_IP>
+ssh -i ~/Downloads/meaowmatch-ec2-key.pem ubuntu@<YOUR_FRONTEND_EC2_PUBLIC_IP>
 ```
 
 ---
@@ -133,7 +133,7 @@ Run the automated endpoint configuration script from the repository root with yo
 The script automatically:
 1. Normalizes the address into REST API (`http://3.25.130.67:8080/api/v1`) and STOMP WebSocket (`http://3.25.130.67:8080/ws`) endpoints.
 2. Writes/updates `frontend/.env.local`.
-3. Clears any conflicting container name (`dating-frontend`) automatically.
+3. Clears any conflicting container name (`meaowmatch-frontend`) automatically.
 4. Builds and launches the frontend container on port **`3000`** via Docker Compose.
 
 ---
@@ -148,7 +148,7 @@ If you prefer to start or restart it manually at any time:
 
 ```bash
 # If a conflicting container exists, remove it first:
-docker rm -f dating-frontend 2>/dev/null || true
+docker rm -f meaowmatch-frontend 2>/dev/null || true
 
 cd frontend
 docker compose up -d --build
@@ -163,7 +163,7 @@ docker compose logs -f
 
 ```bash
 # Remove old container if running
-docker rm -f dating-frontend 2>/dev/null || true
+docker rm -f meaowmatch-frontend 2>/dev/null || true
 
 cd frontend
 
@@ -171,10 +171,10 @@ cd frontend
 docker build \
   --build-arg VITE_API_BASE_URL="http://<YOUR_BACKEND_EC2_PUBLIC_IP>:8080/api/v1" \
   --build-arg VITE_WS_URL="http://<YOUR_BACKEND_EC2_PUBLIC_IP>:8080/ws" \
-  -t dating-frontend .
+  -t meaowmatch-frontend .
 
 # Run container on port 3000
-docker run -d --name dating-frontend -p 3000:80 --restart unless-stopped dating-frontend
+docker run -d --name meaowmatch-frontend -p 3000:80 --restart unless-stopped meaowmatch-frontend
 ```
 
 ---
@@ -185,7 +185,7 @@ Now connect the two servers together!
 
 1. SSH into your **Backend EC2 instance**:
    ```bash
-   ssh -i dating-app-ec2-key.pem ubuntu@<YOUR_BACKEND_EC2_PUBLIC_IP>
+   ssh -i meaowmatch-ec2-key.pem ubuntu@<YOUR_BACKEND_EC2_PUBLIC_IP>
    ```
 2. Run the backend CORS update script with your **Frontend EC2 Public IP**:
    ```bash
@@ -212,15 +212,16 @@ Open your web browser and navigate to:
 1. **Target Backend Indicator**:
    - In the top navbar, click the server icon / settings.
    - Confirm the target backend displays `http://<YOUR_BACKEND_EC2_PUBLIC_IP>:8080/api/v1`.
-2. **Account Creation**:
-   - Click **Get Started** or **Sign In**.
-   - Create a test account (e.g. `test@example.com` / `password123`).
-3. **Profile & Photos**:
-   - Upload 1–2 photos (direct pre-signed S3 upload).
-   - Enter bio, location, and age preferences.
-4. **Discovery & Real-Time Chat**:
-   - Swipe on profiles in the deck.
-   - When a mutual match occurs, open the chat window and verify real-time messaging over STOMP WebSockets (`ws://`).
+2. **Account Creation & User Roles**:
+   - Register choosing your role: **Adopter**, **Rehomer**, or **Rescuer**.
+   - Create a test account (e.g. `adopter@example.com` / `password123`).
+3. **Pet Listings & Photos**:
+   - Add a pet profile (Dogs, Cats, Birds, Reptiles, Small Animals) with pre-signed S3 photos.
+   - Specify species, age, breed, gender, and listing type (Adoption / Foster / Rescue Alert).
+4. **Discovery & Real-Time Coordination Chat**:
+   - Adopters discover and swipe on pet cards.
+   - Rescuers view emergency rescue alerts nearby.
+   - When an adoption match or rescue response is initiated, verify real-time messaging over STOMP WebSockets (`ws://`).
 
 ---
 

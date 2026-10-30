@@ -1,6 +1,6 @@
-# AWS EC2 Free Tier Deployment Guide
+# AWS EC2 Free Tier Deployment Guide - MeaowMatch Backend
 
-This guide provides end-to-end instructions for deploying the Dating App Backend container on an **AWS EC2 Free Tier** instance.
+This guide provides end-to-end instructions for deploying the **MeaowMatch Backend** container on an **AWS EC2 Free Tier** instance.
 
 ---
 
@@ -10,14 +10,14 @@ This guide provides end-to-end instructions for deploying the Dating App Backend
 2. Select your preferred region (e.g., `ap-south-1` (Mumbai), `us-east-1` (N. Virginia), etc.).
 3. Navigate to **EC2** > **Instances** > **Launch instances**.
 4. Configure the instance settings:
-   - **Name**: `dating-app-backend`
+   - **Name**: `meaowmatch-backend`
    - **Application and OS Images (AMI)**: **Ubuntu Server 24.04 LTS (HVM), SSD Volume Type** (64-bit x86).
    - **Instance type**: `t2.micro` (or `t3.micro` if eligible in your region) — **Free tier eligible** (750 hours/month).
    - **Key pair (login)**:
      - Click **Create new key pair**.
-     - Name: `dating-app-ec2-key`.
+     - Name: `meaowmatch-ec2-key`.
      - Type: `RSA`, Private key format: `.pem`.
-     - Download and save `dating-app-ec2-key.pem` on your local computer.
+     - Download and save `meaowmatch-ec2-key.pem` on your local computer.
    - **Network settings (Security Group)**:
      - Choose **Create security group**.
      - Check **Allow SSH traffic from Anywhere (0.0.0.0/0)** (or My IP).
@@ -51,10 +51,10 @@ On your local Linux/macOS machine, open your terminal:
 
 ```bash
 # 1. Restrict permissions on the downloaded key pair (required by SSH)
-chmod 400 ~/Downloads/dating-app-ec2-key.pem
+chmod 400 ~/Downloads/meaowmatch-ec2-key.pem
 
 # 2. Connect via SSH (replace with your EC2 Public IPv4 address)
-ssh -i ~/Downloads/dating-app-ec2-key.pem ubuntu@<YOUR_EC2_PUBLIC_IP>
+ssh -i ~/Downloads/meaowmatch-ec2-key.pem ubuntu@<YOUR_EC2_PUBLIC_IP>
 ```
 
 ---
@@ -179,7 +179,7 @@ docker compose logs -f backend
 
 Once you see:
 ```text
-Started DatingBackendApplication in X.XXX seconds
+Started MeaowMatchApplication in X.XXX seconds
 ```
 The backend is live! Press `Ctrl+C` to exit logs.
 

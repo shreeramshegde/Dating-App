@@ -107,18 +107,25 @@ done
 
 # Check if Docker compose is running and reload if so
 if command -v docker >/dev/null 2>&1; then
-    if docker ps --format '{{.Names}}' | grep -q "dating-backend"; then
+    RUNNING_CONTAINER=""
+    if docker ps --format '{{.Names}}' | grep -q "meaowmatch-backend"; then
+        RUNNING_CONTAINER="meaowmatch-backend"
+    elif docker ps --format '{{.Names}}' | grep -q "dating-backend"; then
+        RUNNING_CONTAINER="dating-backend"
+    fi
+
+    if [ -n "$RUNNING_CONTAINER" ]; then
         echo ""
-        echo "Found running container 'dating-backend'. Reloading environment..."
+        echo "Found running container '$RUNNING_CONTAINER'. Reloading environment..."
         if [ -f "${PROJECT_DIR}/docker-compose.yml" ]; then
             (cd "${PROJECT_DIR}" && docker compose --env-file "${ENV_FILE}" up -d)
         else
-            docker restart dating-backend
+            docker restart "$RUNNING_CONTAINER"
         fi
-        echo "dating-backend container reloaded with new CORS configuration!"
+        echo "$RUNNING_CONTAINER container reloaded with new CORS configuration!"
     else
         echo ""
-        echo "Note: Docker container 'dating-backend' is not currently running."
+        echo "Note: Backend Docker container is not currently running."
         echo "Start it with: docker compose --env-file ${ENV_FILE} up -d"
     fi
 fi

@@ -26,7 +26,7 @@ WORKDIR /app
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 # Copy JAR from builder stage
-COPY --from=builder /build/target/dating-backend-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=builder /build/target/*.jar app.jar
 
 # Give appuser ownership
 RUN chown -R appuser:appgroup /app

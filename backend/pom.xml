@@ -11,11 +11,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.datingapp</groupId>
-    <artifactId>dating-backend</artifactId>
+    <groupId>com.meaowmatch</groupId>
+    <artifactId>meaowmatch-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>dating-backend</name>
-    <description>Dating App MVP Backend with Spring Boot 3/4 &amp; Neon DB</description>
+    <name>meaowmatch-backend</name>
+    <description>MeaowMatch - Pet Adoption and Emergency Rescue Platform Backend</description>
 
     <properties>
         <java.version>21</java.version>
