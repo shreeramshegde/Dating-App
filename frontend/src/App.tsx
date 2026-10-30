@@ -273,7 +273,7 @@ export function App() {
   const criticalAlertsCount = rescueAlerts.filter((a) => a.urgency === 'CRITICAL').length;
 
   return (
-    <div className="min-h-screen bg-hinge-cream text-hinge-black flex flex-col font-sans">
+    <div className="min-h-screen bg-hinge-cream text-hinge-black flex flex-col font-sans w-full max-w-full overflow-x-hidden">
       {/* Top Navbar */}
       <Navbar
         activeTab={activeTab}
@@ -310,7 +310,7 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 pb-24 md:pb-6 flex flex-col">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-4 py-6 pb-24 md:pb-6 flex flex-col overflow-x-hidden">
         {/* 1. Pet Adoption Deck View */}
         {activeTab === 'explore' && (
           <div className="flex-1 flex flex-col justify-center py-4">

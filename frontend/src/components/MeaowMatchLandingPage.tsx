@@ -78,27 +78,27 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
   const featuredPet = dbPets[0];
 
   return (
-    <div className="min-h-screen bg-hinge-cream text-hinge-black font-sans selection:bg-hinge-black selection:text-white flex flex-col text-left">
+    <div className="min-h-screen bg-hinge-cream text-hinge-black font-sans selection:bg-hinge-black selection:text-white flex flex-col text-left w-full max-w-full overflow-x-hidden">
       {/* 1. Top Navigation Bar */}
-      <header className="sticky top-0 z-40 w-full bg-hinge-cream/90 backdrop-blur-md border-b border-hinge-border">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-18 sm:h-20 flex items-center justify-between gap-4">
+      <header className="sticky top-0 z-40 w-full bg-hinge-cream/90 backdrop-blur-md border-b border-hinge-border overflow-hidden">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 h-18 sm:h-20 flex items-center justify-between gap-2 sm:gap-4 overflow-hidden">
           {/* Logo */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="w-10 h-10 rounded-2xl bg-hinge-black text-amber-300 flex items-center justify-center shadow-subtle shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+            <div className="w-9 sm:w-10 h-9 sm:h-10 rounded-2xl bg-hinge-black text-amber-300 flex items-center justify-center shadow-subtle shrink-0">
               <PawPrint className="w-5 h-5" />
             </div>
             <div>
-              <span className="font-serif font-black text-2xl tracking-tight text-hinge-black whitespace-nowrap">
+              <span className="font-serif font-black text-xl sm:text-2xl tracking-tight text-hinge-black whitespace-nowrap">
                 MeaowMatch
               </span>
-              <span className="hidden sm:inline-block text-[10px] font-semibold text-neutral-500 uppercase tracking-widest pl-3 ml-2 border-l border-hinge-border whitespace-nowrap">
+              <span className="hidden xl:inline-block text-[10px] font-semibold text-neutral-500 uppercase tracking-widest pl-3 ml-2 border-l border-hinge-border whitespace-nowrap">
                 Pet Adoption & Emergency Rescue
               </span>
             </div>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-neutral-600 whitespace-nowrap">
+          {/* Navigation Links (Visible on lg: and above) */}
+          <nav className="hidden lg:flex items-center gap-5 xl:gap-7 text-xs font-semibold text-neutral-600 whitespace-nowrap">
             <a href="#browse-pets" className="hover:text-black transition-colors">Adoptable Pets</a>
             <a href="#how-it-works" className="hover:text-black transition-colors">How It Works</a>
             <a href="#rescue-radar" className="hover:text-rose-700 transition-colors flex items-center gap-1.5">
@@ -109,11 +109,11 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
           </nav>
 
           {/* CTAs */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {onBrowseGuest && (
               <button
                 onClick={onBrowseGuest}
-                className="hidden sm:flex text-xs font-semibold text-neutral-600 hover:text-black px-3 py-2 transition-colors items-center gap-1 whitespace-nowrap"
+                className="hidden md:flex text-xs font-semibold text-neutral-600 hover:text-black px-2.5 sm:px-3 py-2 transition-colors items-center gap-1 whitespace-nowrap"
               >
                 <Eye className="w-3.5 h-3.5" />
                 <span>Guest Preview</span>
@@ -122,14 +122,14 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
 
             <button
               onClick={onOpenSignIn}
-              className="text-xs font-bold text-neutral-800 hover:text-black px-3.5 py-2 transition-colors whitespace-nowrap"
+              className="text-xs font-bold text-neutral-800 hover:text-black px-2.5 sm:px-3.5 py-2 transition-colors whitespace-nowrap"
             >
               Sign In
             </button>
 
             <button
               onClick={onLaunchApp}
-              className="px-5 py-2.5 rounded-full text-xs font-bold text-white bg-hinge-black hover:bg-neutral-800 shadow-md transition-all duration-200 flex items-center gap-2 hover:scale-[1.02] active:scale-98 whitespace-nowrap"
+              className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs font-bold text-white bg-hinge-black hover:bg-neutral-800 shadow-md transition-all duration-200 flex items-center gap-1.5 sm:gap-2 hover:scale-[1.02] active:scale-98 whitespace-nowrap"
             >
               <span>Get Started</span>
               <ArrowRight className="w-3.5 h-3.5 text-amber-300" />
@@ -139,28 +139,28 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
       </header>
 
       {/* 2. Hero Section */}
-      <section className="relative pt-12 pb-20 md:pt-20 md:pb-32 px-5 max-w-6xl mx-auto w-full">
+      <section className="relative pt-12 pb-20 md:pt-20 md:pb-32 px-4 sm:px-5 max-w-6xl mx-auto w-full overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           {/* Left Column Statement */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 text-amber-900 text-xs font-semibold border border-amber-200 shadow-xs whitespace-nowrap">
-              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-              <span>Multi-Species Adoption & 24/7 Rescue Platform</span>
+            <div className="inline-flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-full bg-amber-50 text-amber-900 text-xs font-semibold border border-amber-200 shadow-xs max-w-full">
+              <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span className="truncate sm:whitespace-nowrap">Multi-Species Adoption & 24/7 Rescue Platform</span>
             </div>
 
-            <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-hinge-black leading-[1.08]">
+            <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-hinge-black leading-[1.08] break-words">
               Find your companion. <br />
               Rescue animals in need.
             </h1>
 
-            <p className="text-lg text-neutral-700 font-normal leading-relaxed max-w-xl">
+            <p className="text-base sm:text-lg text-neutral-700 font-normal leading-relaxed max-w-xl">
               MeaowMatch unites animal adopters, verified shelters, and emergency field spotters on one ethical platform. Discover adoptable companions across all species — or broadcast real-time GPS alerts to coordinate aid for injured animals.
             </p>
 
-            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 max-w-full">
               <button
                 onClick={onLaunchApp}
-                className="px-8 py-4 rounded-full text-base font-bold text-white bg-hinge-black hover:bg-neutral-800 shadow-xl shadow-neutral-900/15 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-98 transition-all whitespace-nowrap"
+                className="px-6 sm:px-8 py-3.5 sm:py-4 rounded-full text-sm sm:text-base font-bold text-white bg-hinge-black hover:bg-neutral-800 shadow-xl shadow-neutral-900/15 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-98 transition-all whitespace-nowrap"
               >
                 <span>Browse Adoptable Pets</span>
                 <ArrowRight className="w-5 h-5 text-amber-300" />
@@ -168,7 +168,7 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
 
               <button
                 onClick={onOpenRescue}
-                className="px-6 py-4 rounded-full text-sm font-semibold text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-300 flex items-center justify-center gap-2 transition-colors shadow-subtle whitespace-nowrap"
+                className="px-5 sm:px-6 py-3.5 sm:py-4 rounded-full text-xs sm:text-sm font-semibold text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-300 flex items-center justify-center gap-2 transition-colors shadow-subtle whitespace-nowrap"
               >
                 <AlertTriangle className="w-4 h-4 text-rose-600" />
                 <span>Open Emergency Radar</span>
@@ -263,7 +263,7 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
       </section>
 
       {/* 3. Interactive Multi-Species Adoptable Pets Showcase (Direct from DB) */}
-      <section id="browse-pets" className="py-20 bg-white border-y border-hinge-border px-5">
+      <section id="browse-pets" className="py-20 bg-white border-y border-hinge-border px-4 sm:px-5 overflow-hidden">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-3 max-w-xl">
@@ -404,7 +404,7 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
       </section>
 
       {/* 4. Core Philosophy: 3 Pillars Grid */}
-      <section id="how-it-works" className="py-20 bg-hinge-stone/30 border-b border-hinge-border px-5">
+      <section id="how-it-works" className="py-20 bg-hinge-stone/30 border-b border-hinge-border px-4 sm:px-5 overflow-hidden">
         <div className="max-w-6xl mx-auto space-y-16">
           <div className="max-w-2xl space-y-4">
             <span className="text-xs font-bold uppercase tracking-widest text-amber-800 whitespace-nowrap">
@@ -534,7 +534,7 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
       </section>
 
       {/* 5. Emergency Animal Rescue Radar Section */}
-      <section id="rescue-radar" className="py-16 bg-neutral-900 text-white px-5 border-t border-neutral-800">
+      <section id="rescue-radar" className="py-16 bg-neutral-900 text-white px-4 sm:px-5 border-t border-neutral-800 overflow-hidden">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-bold uppercase tracking-wider whitespace-nowrap">
@@ -577,7 +577,7 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
       </section>
 
       {/* 6. Adoption Success Stories */}
-      <section id="stories" className="py-20 bg-hinge-cream border-t border-hinge-border px-5">
+      <section id="stories" className="py-20 bg-hinge-cream border-t border-hinge-border px-4 sm:px-5 overflow-hidden">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-3">
             <span className="text-xs font-bold uppercase tracking-widest text-amber-800 whitespace-nowrap">
@@ -622,15 +622,15 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
       </section>
 
       {/* 7. Footer */}
-      <footer className="mt-auto bg-hinge-cream border-t border-hinge-border py-12 px-5 text-xs text-neutral-600">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <footer className="mt-auto bg-hinge-cream border-t border-hinge-border py-12 px-4 sm:px-5 text-xs text-neutral-600 overflow-hidden">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
           <div className="flex items-center gap-3">
             <PawPrint className="w-5 h-5 text-neutral-800 shrink-0" />
             <span className="font-serif font-black text-2xl text-hinge-black whitespace-nowrap">MeaowMatch</span>
             <span className="text-[11px] text-neutral-500 hidden sm:inline">© 2026 MeaowMatch, Inc. Ethical pet adoption & animal rescue network.</span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6 font-medium text-neutral-700 whitespace-nowrap">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 font-medium text-neutral-700">
             <button onClick={onLaunchApp} className="hover:text-black">Web App</button>
             <a href="#browse-pets" className="hover:text-black">Adopt Pets</a>
             <a href="#how-it-works" className="hover:text-black">How it Works</a>
