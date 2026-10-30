@@ -22,6 +22,8 @@ interface NavbarProps {
   criticalAlertsCount: number;
   userRole?: UserRole;
   userName?: string;
+  isGuest?: boolean;
+  onOpenAuth?: () => void;
   onOpenFilters: () => void;
   onOpenReportRescue: () => void;
   onOpenCreatePet: () => void;
@@ -35,6 +37,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   criticalAlertsCount,
   userRole = 'ADOPTER',
   userName,
+  isGuest = false,
+  onOpenAuth,
   onOpenFilters,
   onOpenReportRescue,
   onOpenCreatePet,
@@ -58,7 +62,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 MeaowMatch
               </span>
               <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
-                {userRole || 'ADOPTER'}
+                {isGuest ? 'Guest Preview' : (userRole || 'ADOPTER')}
               </span>
             </div>
             {userName && (
@@ -187,14 +191,23 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="hidden xl:inline">AWS Backend</span>
           </div>
 
-          {/* Sign Out Button */}
-          <button
-            onClick={onSignOut}
-            title="Sign Out"
-            className="p-2 rounded-full hover:bg-neutral-100 text-neutral-400 hover:text-rose-600 transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
+          {/* Sign In (Guest) or Sign Out (User) */}
+          {isGuest ? (
+            <button
+              onClick={onOpenAuth}
+              className="px-4 py-1.5 rounded-full text-xs font-bold bg-hinge-black text-white hover:bg-neutral-800 shadow-sm transition-all"
+            >
+              Sign In
+            </button>
+          ) : (
+            <button
+              onClick={onSignOut}
+              title="Sign Out"
+              className="p-2 rounded-full hover:bg-neutral-100 text-neutral-400 hover:text-rose-600 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
     </header>

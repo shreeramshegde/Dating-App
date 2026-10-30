@@ -36,6 +36,20 @@ export const CreatePetModal: React.FC<CreatePetModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const SAMPLE_PRESETS: Record<Species, string> = {
+    CAT: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80',
+    DOG: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=800&q=80',
+    BIRD: 'https://images.unsplash.com/photo-1552728089-57bdde30beb3?auto=format&fit=crop&w=800&q=80',
+    SMALL_ANIMAL: 'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=800&q=80',
+    REPTILE: 'https://images.unsplash.com/photo-1508817628294-5a453fa0b8fb?auto=format&fit=crop&w=800&q=80',
+    OTHER: 'https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?auto=format&fit=crop&w=800&q=80',
+  };
+
+  const handleUseSamplePhoto = () => {
+    const sample = SAMPLE_PRESETS[species] || SAMPLE_PRESETS.CAT;
+    setPhotos((prev) => [...prev, sample]);
+  };
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
@@ -177,6 +191,16 @@ export const CreatePetModal: React.FC<CreatePetModalProps> = ({
                 </label>
               )}
             </div>
+
+            {photos.length === 0 && (
+              <button
+                type="button"
+                onClick={handleUseSamplePhoto}
+                className="text-[11px] font-semibold text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-colors"
+              >
+                <span>📸 Auto-fill verified sample {species.toLowerCase()} photo</span>
+              </button>
+            )}
           </div>
 
           {/* Name & Species */}

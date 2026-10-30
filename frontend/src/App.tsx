@@ -21,6 +21,7 @@ export function App() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState<boolean>(() => !!api.getToken());
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+  const [isGuestMode, setIsGuestMode] = useState<boolean>(false);
 
   // Navigation tab
   const [activeTab, setActiveTab] = useState<NavTab>('explore');
@@ -63,12 +64,23 @@ export function App() {
     api.getMyPets().then(setMyPets);
   }, [filterSpecies, filterListingType, filterDistance]);
 
+  // Load guest data
+  const loadGuestData = useCallback(() => {
+    api.getDiscoveryPets(filterSpecies, filterListingType, 30.2672, -97.7431, filterDistance)
+      .then(setDiscoveryPets);
+    api.getNearbyRescueAlerts(filterSpecies, 30.2672, -97.7431, filterDistance)
+      .then(setRescueAlerts);
+  }, [filterSpecies, filterListingType, filterDistance]);
+
   // Authenticate and load profile on mount or token change
   useEffect(() => {
     if (!token) {
       setCurrentUser(null);
       setIsLoadingUser(false);
       wsService.disconnect();
+      if (isGuestMode) {
+        loadGuestData();
+      }
       return;
     }
 
@@ -76,6 +88,7 @@ export function App() {
     api.getCurrentUser()
       .then((user) => {
         setCurrentUser(user);
+        setIsGuestMode(false);
         loadBackendData(user);
         // Connect real-time STOMP WebSocket
         wsService.connect(token);
@@ -90,7 +103,7 @@ export function App() {
       .finally(() => {
         setIsLoadingUser(false);
       });
-  }, [token, loadBackendData]);
+  }, [token, isGuestMode, loadBackendData, loadGuestData]);
 
   // Real-time STOMP notification listener
   useEffect(() => {
@@ -110,6 +123,8 @@ export function App() {
   const handleAuthSuccess = (auth: AuthResponse) => {
     api.setToken(auth.token);
     setToken(auth.token);
+    setShowAuthModal(false);
+    setIsGuestMode(false);
   };
 
   // Sign out
@@ -117,6 +132,7 @@ export function App() {
     api.setToken(null);
     setToken(null);
     setCurrentUser(null);
+    setIsGuestMode(false);
     setShowAuthModal(false);
     wsService.disconnect();
   };
@@ -127,17 +143,23 @@ export function App() {
     setFilterListingType(listingType);
     if (distance) setFilterDistance(distance);
 
-    if (currentUser) {
-      api.getDiscoveryPets(species, listingType, currentUser.latitude, currentUser.longitude, distance || 50)
-        .then(setDiscoveryPets);
+    const lat = currentUser?.latitude ?? 30.2672;
+    const lon = currentUser?.longitude ?? -97.7431;
 
-      api.getNearbyRescueAlerts(species, currentUser.latitude, currentUser.longitude, distance || 50)
-        .then(setRescueAlerts);
-    }
+    api.getDiscoveryPets(species, listingType, lat, lon, distance || 50)
+      .then(setDiscoveryPets);
+
+    api.getNearbyRescueAlerts(species, lat, lon, distance || 50)
+      .then(setRescueAlerts);
   };
 
   // Swiping Handler
   const handleSwipe = async (petId: string, type: SwipeType) => {
+    if (!token) {
+      setShowAuthModal(true);
+      return;
+    }
+
     try {
       const response = await api.submitSwipe(petId, type);
       if (response.match && response.matchedPet) {
@@ -156,6 +178,11 @@ export function App() {
 
   // Claim Rescue Alert Handler
   const handleClaimRescue = async (alertId: string) => {
+    if (!token) {
+      setShowAuthModal(true);
+      return;
+    }
+
     try {
       const res = await api.respondToRescueAlert(alertId);
       const updatedMatches = await api.getMatches();
@@ -200,42 +227,85 @@ export function App() {
     );
   }
 
-  // If not logged in, render Landing Page first, then Sign In / Sign Up
-  if (!token || !currentUser) {
-    if (showAuthModal) {
-      return (
-        <AuthModal
-          onSuccess={handleAuthSuccess}
-          onClose={() => setShowAuthModal(false)}
-        />
-      );
-    }
+  // Show Auth Modal overlay if open
+  if (showAuthModal) {
     return (
-      <MeaowMatchLandingPage
-        onLaunchApp={() => setShowAuthModal(true)}
-        onOpenSignIn={() => setShowAuthModal(true)}
-        onOpenRescue={() => setShowAuthModal(true)}
+      <AuthModal
+        onSuccess={handleAuthSuccess}
+        onClose={() => setShowAuthModal(false)}
       />
     );
   }
 
+  // If not logged in and not in guest mode, render Landing Page
+  if (!token && !currentUser && !isGuestMode) {
+    return (
+      <MeaowMatchLandingPage
+        onLaunchApp={() => {
+          setIsGuestMode(true);
+          loadGuestData();
+        }}
+        onBrowseGuest={() => {
+          setIsGuestMode(true);
+          loadGuestData();
+        }}
+        onOpenSignIn={() => setShowAuthModal(true)}
+        onOpenRescue={() => {
+          setIsGuestMode(true);
+          setActiveTab('rescue');
+          loadGuestData();
+        }}
+      />
+    );
+  }
+
+  // Effective user (authenticated or virtual guest)
+  const effectiveUser: UserProfile = currentUser || {
+    id: 'guest',
+    email: 'guest@meaowmatch.org',
+    role: 'ADOPTER',
+    fullName: 'Guest Explorer',
+    city: 'Austin, TX',
+    latitude: 30.2672,
+    longitude: -97.7431,
+  };
+
   const criticalAlertsCount = rescueAlerts.filter((a) => a.urgency === 'CRITICAL').length;
 
-  // Authenticated Application
   return (
     <div className="min-h-screen bg-hinge-cream text-hinge-black flex flex-col font-sans">
       {/* Top Navbar */}
       <Navbar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={(tab) => {
+          if (!token && (tab === 'matches' || tab === 'my-pets')) {
+            setShowAuthModal(true);
+            return;
+          }
+          setActiveTab(tab);
+        }}
         matchesCount={matches.length}
         unreadCount={matches.reduce((acc, m) => acc + m.unreadCount, 0)}
         criticalAlertsCount={criticalAlertsCount}
-        userRole={currentUser.role}
-        userName={currentUser.fullName}
+        userRole={effectiveUser.role}
+        userName={effectiveUser.fullName}
+        isGuest={!token}
+        onOpenAuth={() => setShowAuthModal(true)}
         onOpenFilters={() => setShowFilters(true)}
-        onOpenReportRescue={() => setShowReportRescue(true)}
-        onOpenCreatePet={() => setShowCreatePet(true)}
+        onOpenReportRescue={() => {
+          if (!token) {
+            setShowAuthModal(true);
+          } else {
+            setShowReportRescue(true);
+          }
+        }}
+        onOpenCreatePet={() => {
+          if (!token) {
+            setShowAuthModal(true);
+          } else {
+            setShowCreatePet(true);
+          }
+        }}
         onSignOut={handleSignOut}
       />
 
@@ -248,12 +318,18 @@ export function App() {
               pets={discoveryPets}
               onSwipe={handleSwipe}
               onResetDeck={() => {
-                if (currentUser) {
-                  api.getDiscoveryPets(filterSpecies, filterListingType, currentUser.latitude, currentUser.longitude, filterDistance)
-                    .then(setDiscoveryPets);
+                const lat = effectiveUser.latitude ?? 30.2672;
+                const lon = effectiveUser.longitude ?? -97.7431;
+                api.getDiscoveryPets(filterSpecies, filterListingType, lat, lon, filterDistance)
+                  .then(setDiscoveryPets);
+              }}
+              onOpenCreatePet={() => {
+                if (!token) {
+                  setShowAuthModal(true);
+                } else {
+                  setShowCreatePet(true);
                 }
               }}
-              onOpenCreatePet={() => setShowCreatePet(true)}
             />
           </div>
         )}
@@ -263,7 +339,13 @@ export function App() {
           <RescueAlertsView
             alerts={rescueAlerts}
             onClaimRescue={handleClaimRescue}
-            onOpenReportModal={() => setShowReportRescue(true)}
+            onOpenReportModal={() => {
+              if (!token) {
+                setShowAuthModal(true);
+              } else {
+                setShowReportRescue(true);
+              }
+            }}
           />
         )}
 
@@ -271,7 +353,7 @@ export function App() {
         {activeTab === 'matches' && (
           <ChatView
             matches={matches}
-            currentUser={currentUser}
+            currentUser={effectiveUser}
             selectedMatchId={selectedMatchId}
             onSelectMatch={setSelectedMatchId}
             onUnmatch={handleCloseConversation}
@@ -282,7 +364,13 @@ export function App() {
         {activeTab === 'my-pets' && (
           <MyPetsView
             myPets={myPets}
-            onOpenCreatePet={() => setShowCreatePet(true)}
+            onOpenCreatePet={() => {
+              if (!token) {
+                setShowAuthModal(true);
+              } else {
+                setShowCreatePet(true);
+              }
+            }}
             onDeletePet={handleDeletePet}
           />
         )}
@@ -290,7 +378,7 @@ export function App() {
         {/* 5. User Profile View */}
         {activeTab === 'profile' && (
           <ProfileView
-            currentUser={currentUser}
+            currentUser={effectiveUser}
             matchesCount={matches.length}
             myPetsCount={myPets.length}
             onUpdateUser={setCurrentUser}
@@ -303,7 +391,7 @@ export function App() {
       {celebrationPet && (
         <MatchCelebrationModal
           pet={celebrationPet.pet}
-          currentUser={currentUser}
+          currentUser={effectiveUser}
           onStartChat={handleStartChatFromCelebration}
           onClose={() => setCelebrationPet(null)}
         />
@@ -326,10 +414,10 @@ export function App() {
           onClose={() => setShowReportRescue(false)}
           onSuccess={() => {
             setShowReportRescue(false);
-            if (currentUser) {
-              api.getNearbyRescueAlerts(filterSpecies, currentUser.latitude, currentUser.longitude, filterDistance)
-                .then(setRescueAlerts);
-            }
+            const lat = effectiveUser.latitude ?? 30.2672;
+            const lon = effectiveUser.longitude ?? -97.7431;
+            api.getNearbyRescueAlerts(filterSpecies, lat, lon, filterDistance)
+              .then(setRescueAlerts);
             setActiveTab('rescue');
           }}
         />
@@ -342,10 +430,10 @@ export function App() {
           onSuccess={() => {
             setShowCreatePet(false);
             api.getMyPets().then(setMyPets);
-            if (currentUser) {
-              api.getDiscoveryPets(filterSpecies, filterListingType, currentUser.latitude, currentUser.longitude, filterDistance)
-                .then(setDiscoveryPets);
-            }
+            const lat = effectiveUser.latitude ?? 30.2672;
+            const lon = effectiveUser.longitude ?? -97.7431;
+            api.getDiscoveryPets(filterSpecies, filterListingType, lat, lon, filterDistance)
+              .then(setDiscoveryPets);
             setActiveTab('my-pets');
           }}
         />

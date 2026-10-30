@@ -11,9 +11,11 @@ import {
   ShieldCheck, 
   Info,
   Clock,
-  Home
+  Home,
+  Star,
+  Undo2
 } from 'lucide-react';
-import { PetResponse, SwipeType } from '../types';
+import { PetResponse, SwipeType, Species } from '../types';
 
 interface SwipeDeckProps {
   pets: PetResponse[];
@@ -21,6 +23,15 @@ interface SwipeDeckProps {
   onResetDeck: () => void;
   onOpenCreatePet?: () => void;
 }
+
+const SPECIES_ICONS: Record<Species | string, string> = {
+  DOG: '🐕',
+  CAT: '🐈',
+  BIRD: '🦜',
+  REPTILE: '🦎',
+  SMALL_ANIMAL: '🐇',
+  OTHER: '🐾',
+};
 
 export const SwipeDeck: React.FC<SwipeDeckProps> = ({
   pets,
@@ -58,6 +69,15 @@ export const SwipeDeck: React.FC<SwipeDeckProps> = ({
     x.set(0);
   };
 
+  const handleUndo = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex((prev) => prev - 1);
+      setActivePhotoIdx(0);
+      setShowFullDetails(false);
+      x.set(0);
+    }
+  };
+
   const nextPhoto = (e: React.MouseEvent, photosLen: number) => {
     e.stopPropagation();
     setActivePhotoIdx((prev) => (prev + 1) % photosLen);
@@ -86,7 +106,7 @@ export const SwipeDeck: React.FC<SwipeDeckProps> = ({
           You've seen all pets nearby!
         </h3>
         <p className="text-sm text-neutral-600 leading-relaxed font-normal">
-          No more adoptable pets matching your current filters. Expand your distance or species filters to discover more companions.
+          No more adoptable companions matching your current filters. Adjust your distance or species filters to discover more animals waiting for a loving home.
         </p>
         <div className="flex flex-col sm:flex-row items-center gap-3">
           <button
@@ -96,7 +116,7 @@ export const SwipeDeck: React.FC<SwipeDeckProps> = ({
             }}
             className="px-6 py-3 rounded-full bg-hinge-black text-white text-xs font-bold flex items-center gap-2 shadow-md hover:bg-neutral-800 transition-all hover:scale-105 active:scale-95"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-4 h-4 text-amber-300" />
             <span>Revisit Adoption Deck</span>
           </button>
 
@@ -117,8 +137,11 @@ export const SwipeDeck: React.FC<SwipeDeckProps> = ({
     ? activePet.photos
     : [{ id: 'placeholder', photoUrl: 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=800&q=80', displayOrder: 0, isPrimary: true }];
 
+  const speciesIcon = SPECIES_ICONS[activePet.species] || '🐾';
+  const genderSymbol = activePet.gender === 'MALE' ? '♂' : activePet.gender === 'FEMALE' ? '♀' : '';
+
   return (
-    <div className="relative w-full max-w-sm mx-auto h-[620px] flex items-center justify-center select-none">
+    <div className="relative w-full max-w-md mx-auto h-[640px] flex items-center justify-center select-none">
       {/* Background / Next Pet Card Preview */}
       {nextPet && (
         <div className="absolute inset-0 rounded-[36px] bg-white border border-hinge-border overflow-hidden scale-95 translate-y-4 opacity-50 shadow-subtle pointer-events-none">
@@ -142,14 +165,14 @@ export const SwipeDeck: React.FC<SwipeDeckProps> = ({
         {/* Dynamic Stamp Overlays */}
         <motion.div
           style={{ opacity: likeOpacity }}
-          className="absolute top-6 left-6 z-30 px-5 py-1.5 border-4 border-emerald-600 text-emerald-600 rounded-2xl font-black text-2xl tracking-wider rotate-[-15deg] pointer-events-none bg-white/70 backdrop-blur-xs shadow-lg uppercase"
+          className="absolute top-6 left-6 z-30 px-5 py-1.5 border-4 border-emerald-600 text-emerald-600 rounded-2xl font-black text-2xl tracking-wider rotate-[-15deg] pointer-events-none bg-white/80 backdrop-blur-xs shadow-lg uppercase"
         >
-          ADOPT 🐾
+          ADOPT ME 🐾
         </motion.div>
 
         <motion.div
           style={{ opacity: nopeOpacity }}
-          className="absolute top-6 right-6 z-30 px-5 py-1.5 border-4 border-rose-600 text-rose-600 rounded-2xl font-black text-2xl tracking-wider rotate-[15deg] pointer-events-none bg-white/70 backdrop-blur-xs shadow-lg uppercase"
+          className="absolute top-6 right-6 z-30 px-5 py-1.5 border-4 border-rose-600 text-rose-600 rounded-2xl font-black text-2xl tracking-wider rotate-[15deg] pointer-events-none bg-white/80 backdrop-blur-xs shadow-lg uppercase"
         >
           PASS ❌
         </motion.div>
@@ -181,13 +204,15 @@ export const SwipeDeck: React.FC<SwipeDeckProps> = ({
             <>
               <button
                 onClick={(e) => prevPhoto(e, photos.length)}
-                className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-xs hover:bg-black/60 transition-colors z-20"
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 text-white flex items-center justify-center backdrop-blur-xs hover:bg-black/65 transition-colors z-20"
+                title="Previous photo"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <button
                 onClick={(e) => nextPhoto(e, photos.length)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-xs hover:bg-black/60 transition-colors z-20"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 text-white flex items-center justify-center backdrop-blur-xs hover:bg-black/65 transition-colors z-20"
+                title="Next photo"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -196,7 +221,7 @@ export const SwipeDeck: React.FC<SwipeDeckProps> = ({
 
           {/* Top Badges (Listing Type & Urgency) */}
           <div className="absolute top-4 left-4 z-20 flex flex-wrap gap-1.5">
-            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-black/70 text-white backdrop-blur-md">
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-black/75 text-white backdrop-blur-md">
               {activePet.listingType === 'FOSTER' ? 'Foster Needed' : 'For Adoption'}
             </span>
 
@@ -205,6 +230,14 @@ export const SwipeDeck: React.FC<SwipeDeckProps> = ({
                 Urgent Home
               </span>
             )}
+          </div>
+
+          {/* Species Badge at Top Right */}
+          <div className="absolute top-4 right-4 z-20">
+            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-white/90 text-neutral-900 backdrop-blur-md flex items-center gap-1 shadow-sm">
+              <span>{speciesIcon}</span>
+              <span>{activePet.species}</span>
+            </span>
           </div>
 
           {/* Gradient Overlay for bottom text */}
@@ -217,32 +250,33 @@ export const SwipeDeck: React.FC<SwipeDeckProps> = ({
                 <h2 className="font-serif text-3xl font-bold tracking-tight">
                   {activePet.name}
                 </h2>
+                {genderSymbol && (
+                  <span className="text-xl font-bold text-amber-300">
+                    {genderSymbol}
+                  </span>
+                )}
                 <span className="text-base text-neutral-300 font-medium">
                   • {formatAge(activePet.ageMonths)}
                 </span>
               </div>
-
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-white/20 backdrop-blur-md">
-                {activePet.species}
-              </span>
             </div>
 
             <p className="text-xs text-neutral-200 font-medium truncate">
-              {activePet.breed} • {activePet.gender} • {activePet.size}
+              {activePet.breed} • {activePet.size} Size
             </p>
 
             <div className="flex items-center gap-1.5 text-[11px] text-amber-300 pt-0.5">
-              <MapPin className="w-3.5 h-3.5" />
+              <MapPin className="w-3.5 h-3.5 shrink-0" />
               <span>{activePet.city} ({activePet.distanceKm ? `${activePet.distanceKm} km away` : 'Nearby'})</span>
             </div>
           </div>
         </div>
 
         {/* Card Lower Section: Details & Description */}
-        <div className="p-4 bg-white space-y-3 text-left">
+        <div className="p-4 bg-white space-y-2.5 text-left">
           {/* Health & Shelter Badges */}
           <div className="flex items-center justify-between text-[11px]">
-            <div className="flex items-center gap-1 text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 font-semibold truncate max-w-[210px]">
+            <div className="flex items-center gap-1 text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 font-semibold truncate max-w-[240px]">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
               <span className="truncate">{activePet.healthStatus}</span>
             </div>
@@ -252,7 +286,7 @@ export const SwipeDeck: React.FC<SwipeDeckProps> = ({
               className="text-neutral-500 hover:text-black flex items-center gap-1 text-[11px] font-semibold"
             >
               <Info className="w-3.5 h-3.5" />
-              <span>{showFullDetails ? 'Less' : 'More'}</span>
+              <span>{showFullDetails ? 'Less' : 'More Details'}</span>
             </button>
           </div>
 
@@ -269,23 +303,43 @@ export const SwipeDeck: React.FC<SwipeDeckProps> = ({
               </div>
               <div className="flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-neutral-400" />
-                <span>Status: <strong className="text-emerald-700">{activePet.status}</strong></span>
+                <span>Listing Status: <strong className="text-emerald-700">{activePet.status}</strong></span>
               </div>
             </div>
           )}
 
           {/* Footer Action Buttons */}
-          <div className="pt-2 flex items-center justify-center gap-6">
+          <div className="pt-1 flex items-center justify-center gap-4">
+            {/* Undo Button */}
+            {currentIndex > 0 && (
+              <button
+                onClick={handleUndo}
+                title="Undo last swipe"
+                className="w-11 h-11 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-600 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+              >
+                <Undo2 className="w-4 h-4" />
+              </button>
+            )}
+
             {/* Pass Button */}
             <button
               onClick={() => triggerSwipe('PASS')}
               title="Pass"
-              className="w-13 h-13 rounded-full bg-white hover:bg-neutral-50 text-neutral-400 hover:text-rose-600 border border-neutral-200 shadow-md flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+              className="w-13 h-13 rounded-full bg-white hover:bg-rose-50 text-neutral-400 hover:text-rose-600 border border-neutral-200 shadow-md flex items-center justify-center transition-all hover:scale-110 active:scale-95"
             >
               <X className="w-6 h-6" />
             </button>
 
-            {/* Adopt / Like Button */}
+            {/* Super Favorite Button */}
+            <button
+              onClick={() => triggerSwipe('LIKE')}
+              title="Save to Favorites"
+              className="w-12 h-12 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-200 shadow-md flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+            >
+              <Star className="w-5 h-5 fill-amber-400 text-amber-500" />
+            </button>
+
+            {/* Adopt / Send Inquiry Button */}
             <button
               onClick={() => triggerSwipe('LIKE')}
               title="Adopt / Send Inquiry"

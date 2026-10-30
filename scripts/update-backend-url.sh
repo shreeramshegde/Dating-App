@@ -29,7 +29,7 @@ ENV_FILE="${FRONTEND_DIR}/.env"
 RAW_INPUT="$1"
 if [ -z "$RAW_INPUT" ]; then
     echo "========================================================"
-    echo " Dating App - Update Frontend Backend URL"
+    echo " MeaowMatch - Update Frontend Backend URL"
     echo "========================================================"
     read -rp "Enter Backend EC2 IP, Domain, or URL (e.g. 3.25.130.67 or http://3.25.130.67:8080): " RAW_INPUT
 fi

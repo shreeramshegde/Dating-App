@@ -31,7 +31,7 @@ fi
 RAW_INPUT="$1"
 if [ -z "$RAW_INPUT" ]; then
     echo "========================================================"
-    echo " Dating App - Update CORS Allowed Origins"
+    echo " MeaowMatch - Update CORS Allowed Origins"
     echo "========================================================"
     read -rp "Enter Frontend IP, Domain, or URL (e.g. 54.210.12.34 or https://myfrontend.vercel.app): " RAW_INPUT
 fi
