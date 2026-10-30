@@ -65,14 +65,17 @@ public class PetController {
         return ResponseEntity.ok(Map.of("message", "Pet listing deleted successfully"));
     }
 
-    @GetMapping("/my-pets")
+    @GetMapping({"/my", "/my-pets"})
     @Operation(summary = "List pets posted by me", description = "Get all pets listed by the logged-in rehomer or rescuer.")
     public ResponseEntity<List<PetResponse>> getMyPets(@AuthenticationPrincipal User user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         List<PetResponse> myPets = petService.getMyPets(user.getId());
         return ResponseEntity.ok(myPets);
     }
 
-    @PostMapping("/photos/presign")
+    @PostMapping({"/photos/presign", "/photos/presigned"})
     @Operation(summary = "Request S3 Pre-signed Upload URL", description = "Generates a pre-signed S3 PUT URL for direct photo uploads.")
     public ResponseEntity<PresignedUploadResponse> presignPhoto(
         @AuthenticationPrincipal User user,
@@ -80,5 +83,33 @@ public class PetController {
     ) {
         PresignedUploadResponse response = petService.generatePresignedUploadUrl(user.getId(), contentType);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/photos")
+    @Operation(summary = "Add photo to pet", description = "Attach an uploaded S3 photo to an existing pet listing.")
+    public ResponseEntity<com.meaowmatch.dto.response.PhotoDto> addPhoto(
+        @AuthenticationPrincipal User user,
+        @PathVariable UUID id,
+        @RequestBody Map<String, Object> body
+    ) {
+        String photoUrl = (String) body.get("photoUrl");
+        Integer displayOrder = body.get("displayOrder") != null ? ((Number) body.get("displayOrder")).intValue() : null;
+        Boolean isPrimary = (Boolean) body.get("isPrimary");
+
+        com.meaowmatch.dto.response.PhotoDto photoDto = petService.addPhotoToPet(
+            user.getId(), id, photoUrl, displayOrder, isPrimary
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(photoDto);
+    }
+
+    @DeleteMapping("/{id}/photos/{photoId}")
+    @Operation(summary = "Delete photo from pet", description = "Removes a photo from a pet and deletes it from S3.")
+    public ResponseEntity<Map<String, String>> deletePhoto(
+        @AuthenticationPrincipal User user,
+        @PathVariable UUID id,
+        @PathVariable UUID photoId
+    ) {
+        petService.deletePhotoFromPet(user.getId(), id, photoId);
+        return ResponseEntity.ok(Map.of("message", "Photo deleted successfully"));
     }
 }

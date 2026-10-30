@@ -64,9 +64,9 @@ public class ChatController {
 
     /**
      * Real-time STOMP WebSocket message handler.
-     * Clients publish to destination: /app/chat.sendMessage
+     * Clients publish to destination: /app/chat.sendMessage or /app/chat.send
      */
-    @MessageMapping("/chat.sendMessage")
+    @MessageMapping({"/chat.sendMessage", "/chat.send"})
     public void sendMessageWebSocket(@Payload ChatMessageRequest request, Principal principal) {
         if (principal == null) {
             log.warn("Unauthenticated WebSocket message rejected");

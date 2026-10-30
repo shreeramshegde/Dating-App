@@ -61,8 +61,9 @@ public class ChatService {
 
         ChatMessageResponse response = mapToResponse(savedMessage);
 
-        // Broadcast to WebSocket subscribers for this match topic
+        // Broadcast to WebSocket subscribers for this match topic (support both singular and plural)
         messagingTemplate.convertAndSend("/topic/match." + matchId, response);
+        messagingTemplate.convertAndSend("/topic/matches." + matchId, response);
 
         log.info("Message sent in match {}: sender={}", matchId, senderId);
         return response;

@@ -39,7 +39,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             .filter(s -> !s.isEmpty())
             .toArray(String[]::new);
 
-        // Primary STOMP endpoint with SockJS fallback
+        // Native STOMP WebSocket endpoint (e.g. for @stomp/stompjs)
+        registry.addEndpoint("/ws")
+            .setAllowedOriginPatterns(patterns.length == 0 ? new String[]{"*"} : patterns);
+
+        // SockJS fallback endpoint
         registry.addEndpoint("/ws")
             .setAllowedOriginPatterns(patterns.length == 0 ? new String[]{"*"} : patterns)
             .withSockJS();

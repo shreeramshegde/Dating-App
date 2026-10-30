@@ -31,11 +31,12 @@ public class DiscoveryService {
         Integer maxDistanceKm,
         int limit
     ) {
-        User currentUser = userRepository.findById(currentUserId)
-            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User currentUser = currentUserId != null
+            ? userRepository.findById(currentUserId).orElse(null)
+            : null;
 
-        double userLat = latitude != null ? latitude : (currentUser.getLatitude() != null ? currentUser.getLatitude() : 0.0);
-        double userLon = longitude != null ? longitude : (currentUser.getLongitude() != null ? currentUser.getLongitude() : 0.0);
+        double userLat = latitude != null ? latitude : (currentUser != null && currentUser.getLatitude() != null ? currentUser.getLatitude() : 0.0);
+        double userLon = longitude != null ? longitude : (currentUser != null && currentUser.getLongitude() != null ? currentUser.getLongitude() : 0.0);
         int distance = maxDistanceKm != null ? maxDistanceKm : 50;
 
         String speciesStr = species != null ? species.name() : null;

@@ -33,10 +33,10 @@ public interface PetRepository extends JpaRepository<Pet, UUID> {
                )) AS distance_km
         FROM pets p
         WHERE p.status = 'AVAILABLE'
-          AND p.owner_id != :currentUserId
-          AND p.id NOT IN (
+          AND (:currentUserId IS NULL OR p.owner_id != :currentUserId)
+          AND (:currentUserId IS NULL OR p.id NOT IN (
               SELECT s.pet_id FROM pet_swipes s WHERE s.user_id = :currentUserId
-          )
+          ))
           AND (:species IS NULL OR p.species = :species)
           AND (:listingType IS NULL OR p.listing_type = :listingType)
           AND (

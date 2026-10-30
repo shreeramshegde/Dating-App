@@ -96,4 +96,39 @@ class PetServiceTest {
         assertEquals(pet.getId(), resp.getId());
         assertEquals("Milo", resp.getName());
     }
+
+    @Test
+    void testAddPhotoToPet() {
+        when(petRepository.findById(pet.getId())).thenReturn(Optional.of(pet));
+        when(petPhotoRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var photoDto = petService.addPhotoToPet(
+            owner.getId(), pet.getId(), "https://storage.neon.tech/photos/new.jpg", 1, true
+        );
+
+        assertNotNull(photoDto);
+        assertEquals("https://storage.neon.tech/photos/new.jpg", photoDto.getPhotoUrl());
+        assertTrue(photoDto.getIsPrimary());
+    }
+
+    @Test
+    void testDeletePhotoFromPet() {
+        com.meaowmatch.entity.PetPhoto photo = com.meaowmatch.entity.PetPhoto.builder()
+            .id(UUID.randomUUID())
+            .pet(pet)
+            .photoUrl("https://storage.neon.tech/photos/delete-me.jpg")
+            .displayOrder(0)
+            .isPrimary(true)
+            .build();
+        pet.getPhotos().add(photo);
+
+        when(petRepository.findById(pet.getId())).thenReturn(Optional.of(pet));
+        when(petPhotoRepository.findById(photo.getId())).thenReturn(Optional.of(photo));
+
+        petService.deletePhotoFromPet(owner.getId(), pet.getId(), photo.getId());
+
+        verify(s3StorageService, times(1)).deleteFile(photo.getPhotoUrl());
+        verify(petPhotoRepository, times(1)).delete(photo);
+        assertTrue(pet.getPhotos().isEmpty());
+    }
 }

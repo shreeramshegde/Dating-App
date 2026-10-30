@@ -45,7 +45,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/me")
+    @PutMapping({"/me", "/profile"})
     @Operation(summary = "Update current user profile", description = "Update name, phone, city, or coordinates for the authenticated user.")
     public ResponseEntity<UserProfileResponse> updateProfile(
         @AuthenticationPrincipal User user,

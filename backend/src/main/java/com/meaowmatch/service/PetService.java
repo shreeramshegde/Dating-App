@@ -139,6 +139,66 @@ public class PetService {
         petRepository.delete(pet);
     }
 
+    @Transactional
+    public PhotoDto addPhotoToPet(UUID ownerId, UUID petId, String photoUrl, Integer displayOrder, Boolean isPrimary) {
+        Pet pet = petRepository.findById(petId)
+            .orElseThrow(() -> new IllegalArgumentException("Pet not found with ID: " + petId));
+
+        if (!pet.getOwner().getId().equals(ownerId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Unauthorized to modify this pet");
+        }
+
+        int order = displayOrder != null ? displayOrder : (pet.getPhotos() != null ? pet.getPhotos().size() : 0);
+        boolean primary = Boolean.TRUE.equals(isPrimary) || (pet.getPhotos() == null || pet.getPhotos().isEmpty());
+
+        if (primary && pet.getPhotos() != null) {
+            pet.getPhotos().forEach(p -> p.setIsPrimary(false));
+            petPhotoRepository.saveAll(pet.getPhotos());
+        }
+
+        PetPhoto photo = PetPhoto.builder()
+            .pet(pet)
+            .photoUrl(photoUrl)
+            .displayOrder(order)
+            .isPrimary(primary)
+            .build();
+
+        PetPhoto saved = petPhotoRepository.save(photo);
+        if (pet.getPhotos() != null) {
+            pet.getPhotos().add(saved);
+        }
+
+        return PhotoDto.builder()
+            .id(saved.getId())
+            .photoUrl(saved.getPhotoUrl())
+            .displayOrder(saved.getDisplayOrder())
+            .isPrimary(saved.getIsPrimary())
+            .build();
+    }
+
+    @Transactional
+    public void deletePhotoFromPet(UUID ownerId, UUID petId, UUID photoId) {
+        Pet pet = petRepository.findById(petId)
+            .orElseThrow(() -> new IllegalArgumentException("Pet not found with ID: " + petId));
+
+        if (!pet.getOwner().getId().equals(ownerId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Unauthorized to modify this pet");
+        }
+
+        PetPhoto photo = petPhotoRepository.findById(photoId)
+            .orElseThrow(() -> new IllegalArgumentException("Photo not found with ID: " + photoId));
+
+        if (!photo.getPet().getId().equals(petId)) {
+            throw new IllegalArgumentException("Photo does not belong to this pet");
+        }
+
+        s3StorageService.deleteFile(photo.getPhotoUrl());
+        petPhotoRepository.delete(photo);
+        if (pet.getPhotos() != null) {
+            pet.getPhotos().removeIf(p -> p.getId().equals(photoId));
+        }
+    }
+
     public PresignedUploadResponse generatePresignedUploadUrl(UUID userId, String contentType) {
         return s3StorageService.generatePresignedUploadUrl(userId, contentType);
     }

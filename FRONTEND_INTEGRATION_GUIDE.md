@@ -138,7 +138,23 @@ Before creating a pet listing, upload photos directly to S3 in 3 steps:
 * **Method & URL:** `GET /api/v1/pets/{id}`
 
 #### 4. List Pets Owned by Current User
-* **Method & URL:** `GET /api/v1/pets/my-pets`
+* **Method & URL:** `GET /api/v1/pets/my` (or `GET /api/v1/pets/my-pets`)
+* **Headers:** `Authorization: Bearer <token>`
+
+#### 5. Add Photo to Existing Pet
+* **Method & URL:** `POST /api/v1/pets/{id}/photos`
+* **Headers:** `Authorization: Bearer <token>`
+* **Request Body:**
+  ```json
+  {
+    "photoUrl": "https://storage.neon.tech/photos/pets/user-xxx/uuid.jpg",
+    "displayOrder": 1,
+    "isPrimary": false
+  }
+  ```
+
+#### 6. Delete Photo from Pet
+* **Method & URL:** `DELETE /api/v1/pets/{id}/photos/{photoId}`
 * **Headers:** `Authorization: Bearer <token>`
 
 ---
