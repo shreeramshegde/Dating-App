@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Lock, Mail, ArrowRight, User, Phone, MapPin, PawPrint } from 'lucide-react';
+import { Lock, Mail, ArrowRight, ArrowLeft, X, User, Phone, MapPin, PawPrint } from 'lucide-react';
 import { api } from '../services/api';
 import { AuthResponse, UserRole } from '../types';
 
 interface AuthModalProps {
   onSuccess: (auth: AuthResponse) => void;
+  onClose?: () => void;
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -59,7 +60,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess }) => {
 
   return (
     <div className="min-h-screen bg-hinge-cream flex items-center justify-center p-4">
-      <div className="w-full max-w-md rounded-[36px] bg-white border border-hinge-border p-8 shadow-2xl space-y-6 text-left">
+      <div className="w-full max-w-md rounded-[36px] bg-white border border-hinge-border p-8 shadow-2xl space-y-6 text-left relative">
+        {onClose && (
+          <div className="flex items-center justify-between pb-2 border-b border-neutral-100 -mt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-xs font-semibold text-neutral-500 hover:text-black flex items-center gap-1.5 transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to Home</span>
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-full text-neutral-400 hover:text-black hover:bg-neutral-100 transition-colors"
+              title="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         {/* Brand Header */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-hinge-black text-amber-300 flex items-center justify-center shadow-subtle">

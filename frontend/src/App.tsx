@@ -8,6 +8,7 @@ import { ProfileView } from './components/ProfileView';
 import { MatchCelebrationModal } from './components/MatchCelebrationModal';
 import { FiltersModal } from './components/FiltersModal';
 import { AuthModal } from './components/AuthModal';
+import { MeaowMatchLandingPage } from './components/MeaowMatchLandingPage';
 import { ReportRescueModal } from './components/ReportRescueModal';
 import { CreatePetModal } from './components/CreatePetModal';
 import { UserProfile, PetResponse, MatchItem, SwipeType, Species, ListingType, AuthResponse } from './types';
@@ -18,7 +19,8 @@ export function App() {
   // Authentication State
   const [token, setToken] = useState<string | null>(() => api.getToken());
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
-  const [isLoadingUser, setIsLoadingUser] = useState<boolean>(true);
+  const [isLoadingUser, setIsLoadingUser] = useState<boolean>(() => !!api.getToken());
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
 
   // Navigation tab
   const [activeTab, setActiveTab] = useState<NavTab>('explore');
@@ -115,6 +117,7 @@ export function App() {
     api.setToken(null);
     setToken(null);
     setCurrentUser(null);
+    setShowAuthModal(false);
     wsService.disconnect();
   };
 
@@ -197,9 +200,23 @@ export function App() {
     );
   }
 
-  // If not logged in, render the pure Authentication view
+  // If not logged in, render Landing Page first, then Sign In / Sign Up
   if (!token || !currentUser) {
-    return <AuthModal onSuccess={handleAuthSuccess} />;
+    if (showAuthModal) {
+      return (
+        <AuthModal
+          onSuccess={handleAuthSuccess}
+          onClose={() => setShowAuthModal(false)}
+        />
+      );
+    }
+    return (
+      <MeaowMatchLandingPage
+        onLaunchApp={() => setShowAuthModal(true)}
+        onOpenSignIn={() => setShowAuthModal(true)}
+        onOpenRescue={() => setShowAuthModal(true)}
+      />
+    );
   }
 
   const criticalAlertsCount = rescueAlerts.filter((a) => a.urgency === 'CRITICAL').length;

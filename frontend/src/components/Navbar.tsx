@@ -58,7 +58,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 MeaowMatch
               </span>
               <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
-                {userRole}
+                {userRole || 'ADOPTER'}
               </span>
             </div>
             {userName && (

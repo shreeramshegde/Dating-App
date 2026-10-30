@@ -26,10 +26,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onSignOut,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [fullName, setFullName] = useState(currentUser.fullName);
-  const [phone, setPhone] = useState(currentUser.phone || '');
-  const [city, setCity] = useState(currentUser.city || '');
-  const [role, setRole] = useState<UserRole>(currentUser.role);
+  const [fullName, setFullName] = useState(currentUser?.fullName || 'Animal Lover');
+  const [phone, setPhone] = useState(currentUser?.phone || '');
+  const [city, setCity] = useState(currentUser?.city || '');
+  const [role, setRole] = useState<UserRole>((currentUser?.role as UserRole) || 'ADOPTER');
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -49,11 +49,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     }
   };
 
-  const roleColors: Record<UserRole, { bg: string; text: string; border: string }> = {
+  const roleColors: Record<string, { bg: string; text: string; border: string }> = {
     ADOPTER: { bg: 'bg-amber-50', text: 'text-amber-900', border: 'border-amber-200' },
     REHOMER: { bg: 'bg-emerald-50', text: 'text-emerald-900', border: 'border-emerald-200' },
     RESCUER: { bg: 'bg-rose-50', text: 'text-rose-900', border: 'border-rose-200' },
   };
+
+  const activeRole = currentUser?.role || 'ADOPTER';
+  const roleStyle = roleColors[activeRole] || roleColors.ADOPTER;
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 text-left">
@@ -68,24 +71,24 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <h2 className="text-2xl sm:text-3xl font-serif font-bold text-hinge-black">
-                  {currentUser.fullName}
+                  {currentUser?.fullName || currentUser?.email?.split('@')[0] || 'Animal Lover'}
                 </h2>
                 <ShieldCheck className="w-5 h-5 text-emerald-600" />
               </div>
 
               <p className="text-xs text-neutral-500 font-medium flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5" />
-                <span>{currentUser.email}</span>
+                <span>{currentUser?.email || 'N/A'}</span>
               </p>
 
               <div className="pt-1 flex items-center gap-2">
-                <span className={`px-3 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border ${roleColors[currentUser.role].bg} ${roleColors[currentUser.role].text} ${roleColors[currentUser.role].border}`}>
-                  {currentUser.role}
+                <span className={`px-3 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border ${roleStyle.bg} ${roleStyle.text} ${roleStyle.border}`}>
+                  {activeRole}
                 </span>
 
                 <span className="text-[11px] text-neutral-500 flex items-center gap-1">
                   <MapPin className="w-3 h-3 text-neutral-400" />
-                  <span>{currentUser.city || 'Austin, TX'}</span>
+                  <span>{currentUser?.city || 'Austin, TX'}</span>
                 </span>
               </div>
             </div>
