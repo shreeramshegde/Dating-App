@@ -1,11 +1,7 @@
 package com.meaowmatch.config;
 
-import com.meaowmatch.entity.Pet;
-import com.meaowmatch.entity.PetPhoto;
-import com.meaowmatch.entity.User;
-import com.meaowmatch.repository.PetPhotoRepository;
-import com.meaowmatch.repository.PetRepository;
-import com.meaowmatch.repository.UserRepository;
+import com.meaowmatch.entity.*;
+import com.meaowmatch.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -24,6 +20,9 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final UserRepository userRepository;
     private final PetRepository petRepository;
     private final PetPhotoRepository petPhotoRepository;
+    private final MatchRepository matchRepository;
+    private final MessageRepository messageRepository;
+    private final SwipeRepository swipeRepository;
     private final PasswordEncoder passwordEncoder;
     private final JdbcTemplate jdbcTemplate;
 
@@ -148,7 +147,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         );
 
         // 4. Seed Adoptable Pets with S3 Photos stored in DB
-        seedPetWithPhotos(
+        Pet luna = seedPetWithPhotos(
                 shelterHaven,
                 "Luna",
                 Pet.Species.CAT,
@@ -169,7 +168,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 )
         );
 
-        seedPetWithPhotos(
+        Pet barnaby = seedPetWithPhotos(
                 shelterHillCountry,
                 "Barnaby",
                 Pet.Species.DOG,
@@ -391,10 +390,97 @@ public class DatabaseSeeder implements CommandLineRunner {
                 )
         );
 
+        // 5. Seed Demo Adopters, Swipes, Matches and Real-time Messages
+        User adopterSarah = userRepository.findByEmail("sarah.adopter@meaowmatch.org").orElseGet(() ->
+                userRepository.save(User.builder()
+                        .email("sarah.adopter@meaowmatch.org")
+                        .passwordHash(encodedPassword)
+                        .role(User.UserRole.ADOPTER)
+                        .fullName("Sarah Jenkins")
+                        .phone("+1-512-555-0201")
+                        .city("Austin, TX")
+                        .latitude(30.2672)
+                        .longitude(-97.7431)
+                        .status("ACTIVE")
+                        .build())
+        );
+
+        if (matchRepository.count() == 0) {
+            Match matchLuna = matchRepository.save(Match.builder()
+                    .user1(shelterHaven)
+                    .user2(adopterSarah)
+                    .pet(luna)
+                    .matchType("ADOPTION")
+                    .isActive(true)
+                    .build());
+
+            messageRepository.save(Message.builder()
+                    .match(matchLuna)
+                    .sender(adopterSarah)
+                    .content("Hi Austin Haven! I fell in love with Luna from her profile. Is she still available for adoption?")
+                    .isRead(true)
+                    .build());
+
+            messageRepository.save(Message.builder()
+                    .match(matchLuna)
+                    .sender(shelterHaven)
+                    .content("Hello Sarah! Yes, Luna is available and doing great. She loves people and purrs whenever anyone sits near her.")
+                    .isRead(true)
+                    .build());
+
+            messageRepository.save(Message.builder()
+                    .match(matchLuna)
+                    .sender(adopterSarah)
+                    .content("That warms my heart! Could I visit her this Saturday around 2:00 PM?")
+                    .isRead(true)
+                    .build());
+
+            messageRepository.save(Message.builder()
+                    .match(matchLuna)
+                    .sender(shelterHaven)
+                    .content("Saturday at 2:00 PM is perfect! We have put you on our calendar. We are at 4200 S Congress Ave, Austin. See you soon!")
+                    .isRead(false)
+                    .build());
+
+            Match matchBarnaby = matchRepository.save(Match.builder()
+                    .user1(shelterHillCountry)
+                    .user2(adopterSarah)
+                    .pet(barnaby)
+                    .matchType("ADOPTION")
+                    .isActive(true)
+                    .build());
+
+            messageRepository.save(Message.builder()
+                    .match(matchBarnaby)
+                    .sender(shelterHillCountry)
+                    .content("Hi Sarah! Barnaby matched with your profile. We noticed you enjoy hiking – he is the ultimate trail buddy!")
+                    .isRead(true)
+                    .build());
+
+            messageRepository.save(Message.builder()
+                    .match(matchBarnaby)
+                    .sender(adopterSarah)
+                    .content("Hi! Yes, I hike the Greenbelt every weekend! How is he on the leash?")
+                    .isRead(false)
+                    .build());
+
+            swipeRepository.save(Swipe.builder()
+                    .user(adopterSarah)
+                    .pet(luna)
+                    .swipeType(Swipe.SwipeType.LIKE)
+                    .build());
+
+            swipeRepository.save(Swipe.builder()
+                    .user(adopterSarah)
+                    .pet(barnaby)
+                    .swipeType(Swipe.SwipeType.LIKE)
+                    .build());
+        }
+
         log.info("[DatabaseSeeder] Successfully seeded {} pets and associated photos into PostgreSQL database.", petRepository.count());
     }
 
-    private void seedPetWithPhotos(
+    private Pet seedPetWithPhotos(
             User owner,
             String name,
             Pet.Species species,
@@ -437,5 +523,6 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .isPrimary(i == 0)
                     .build());
         }
+        return pet;
     }
 }

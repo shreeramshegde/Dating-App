@@ -1,7 +1,8 @@
 -- ==============================================================================
 -- Migration: V2__seed_meaowmatch_data.sql
 -- Description: Production Seed Data for MeaowMatch
--- Inserts Verified Shelters, Multi-Species Pets, and Emergency Rescue Alerts
+-- Inserts Verified Shelters, Multi-Species Pets, Emergency Rescue Alerts,
+-- Demo Adopters, Matches, and Real-Time Chat Conversations
 -- ==============================================================================
 
 -- 1. Insert Verified Organizations & Rescuers
@@ -15,8 +16,17 @@ VALUES
     ('a0000000-0000-0000-0000-000000000004', 'rabbit-sanctuary@meaowmatch.org', '$2a$10$wSjO389.tE42Y9BszYg1c.mS.kY16d.4P2p.7n0y76rG9lZ4mF4/u', 'REHOMER', 'Austin Rabbit Sanctuary', '+1-512-555-0104', 'Austin, TX', 30.2500, -97.7500),
     ('a0000000-0000-0000-0000-000000000005', 'avian-sanctuary@meaowmatch.org', '$2a$10$wSjO389.tE42Y9BszYg1c.mS.kY16d.4P2p.7n0y76rG9lZ4mF4/u', 'REHOMER', 'Lone Star Avian Sanctuary', '+1-512-555-0105', 'Austin, TX', 30.3000, -97.7200),
     ('a0000000-0000-0000-0000-000000000006', 'herp-society@meaowmatch.org', '$2a$10$wSjO389.tE42Y9BszYg1c.mS.kY16d.4P2p.7n0y76rG9lZ4mF4/u', 'REHOMER', 'Austin Herpetological Society', '+1-512-555-0106', 'Cedar Park, TX', 30.5050, -97.8200),
-    ('a0000000-0000-0000-0000-000000000007', 'spotter-austin@meaowmatch.org', '$2a$10$wSjO389.tE42Y9BszYg1c.mS.kY16d.4P2p.7n0y76rG9lZ4mF4/u', 'RESCUER', 'Citizen Emergency Spotter', '+1-512-555-0107', 'Austin, TX', 30.2504, -97.7495)
-ON CONFLICT (email) DO NOTHING;
+    ('a0000000-0000-0000-0000-000000000007', 'spotter-austin@meaowmatch.org', '$2a$10$wSjO389.tE42Y9BszYg1c.mS.kY16d.4P2p.7n0y76rG9lZ4mF4/u', 'RESCUER', 'Citizen Emergency Spotter', '+1-512-555-0107', 'Austin, TX', 30.2504, -97.7495),
+    ('a0000000-0000-0000-0000-000000000010', 'sarah.adopter@meaowmatch.org', '$2a$10$wSjO389.tE42Y9BszYg1c.mS.kY16d.4P2p.7n0y76rG9lZ4mF4/u', 'ADOPTER', 'Sarah Jenkins', '+1-512-555-0201', 'Austin, TX', 30.2672, -97.7431),
+    ('a0000000-0000-0000-0000-000000000011', 'alex.adopter@meaowmatch.org', '$2a$10$wSjO389.tE42Y9BszYg1c.mS.kY16d.4P2p.7n0y76rG9lZ4mF4/u', 'ADOPTER', 'Alex Rivera', '+1-512-555-0202', 'Austin, TX', 30.2800, -97.7300),
+    ('a0000000-0000-0000-0000-000000000012', 'wildlife-patrol@meaowmatch.org', '$2a$10$wSjO389.tE42Y9BszYg1c.mS.kY16d.4P2p.7n0y76rG9lZ4mF4/u', 'RESCUER', 'Travis County Wildlife Patrol', '+1-512-555-0301', 'Austin, TX', 30.2600, -97.7400)
+ON CONFLICT (email) DO UPDATE SET
+    role = EXCLUDED.role,
+    full_name = EXCLUDED.full_name,
+    phone = EXCLUDED.phone,
+    city = EXCLUDED.city,
+    latitude = EXCLUDED.latitude,
+    longitude = EXCLUDED.longitude;
 
 -- 2. Insert Adoptable Pets (Multi-Species: Dog, Cat, Bird, Reptile, Small Animal)
 INSERT INTO pets (id, owner_id, name, species, breed, age_months, gender, size, description, listing_type, urgency, health_status, status, latitude, longitude, city)
@@ -40,7 +50,7 @@ VALUES
     ('c0000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000007', 'Displaced River Turtle', 'REPTILE', 'Red-eared Slider', 48, 'UNKNOWN', 'SMALL', 'Crossed over MoPac frontage road barrier away from water. Moved to safe grass embankment. Needs relocation to protected creek basin.', 'RESCUE_ALERT', 'HIGH', 'Shell intact, active and responsive', 'AVAILABLE', 30.2600, -97.7700, 'Austin, TX')
 ON CONFLICT (id) DO NOTHING;
 
--- 4. Insert High-Resolution Pet Photos (Stored directly in database records)
+-- 4. Insert High-Resolution Pet Photos (Stored directly in database records & mirrored in S3)
 INSERT INTO pet_photos (id, pet_id, photo_url, display_order, is_primary)
 VALUES
     -- Luna (Cat)
@@ -74,4 +84,29 @@ VALUES
     ('d0000000-0000-0000-0000-000000000012', 'c0000000-0000-0000-0000-000000000002', 'https://images.unsplash.com/photo-1561037404-61cd46aa615b?auto=format&fit=crop&w=800&q=80', 0, true),
     ('d0000000-0000-0000-0000-000000000013', 'c0000000-0000-0000-0000-000000000003', 'https://images.unsplash.com/photo-1444464666168-49d633b86797?auto=format&fit=crop&w=800&q=80', 0, true),
     ('d0000000-0000-0000-0000-000000000014', 'c0000000-0000-0000-0000-000000000004', 'https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?auto=format&fit=crop&w=800&q=80', 0, true)
+ON CONFLICT (id) DO NOTHING;
+
+-- 5. Seed Swipes for Demo Adopter
+INSERT INTO pet_swipes (id, user_id, pet_id, swipe_type)
+VALUES
+    ('e0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000010', 'b0000000-0000-0000-0000-000000000001', 'LIKE'),
+    ('e0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000010', 'b0000000-0000-0000-0000-000000000002', 'LIKE')
+ON CONFLICT (user_id, pet_id) DO NOTHING;
+
+-- 6. Seed Matches
+INSERT INTO matches (id, user1_id, user2_id, pet_id, match_type, is_active)
+VALUES
+    ('f0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000010', 'b0000000-0000-0000-0000-000000000001', 'ADOPTION', true),
+    ('f0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000010', 'b0000000-0000-0000-0000-000000000002', 'ADOPTION', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- 7. Seed Real Chat Messages
+INSERT INTO messages (id, match_id, sender_id, content, is_read, sent_at)
+VALUES
+    ('90000000-0000-0000-0000-000000000001', 'f0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000010', 'Hi Austin Haven! I fell in love with Luna from her profile. Is she still available for adoption?', true, NOW() - INTERVAL '2 hours'),
+    ('90000000-0000-0000-0000-000000000002', 'f0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'Hello Sarah! Yes, Luna is available and doing great. She loves people and purrs whenever anyone sits near her.', true, NOW() - INTERVAL '90 minutes'),
+    ('90000000-0000-0000-0000-000000000003', 'f0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000010', 'That warms my heart! Could I visit her this Saturday around 2:00 PM?', true, NOW() - INTERVAL '45 minutes'),
+    ('90000000-0000-0000-0000-000000000004', 'f0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'Saturday at 2:00 PM is perfect! We have put you on our calendar. We are at 4200 S Congress Ave, Austin. See you soon!', false, NOW() - INTERVAL '10 minutes'),
+    ('90000000-0000-0000-0000-000000000010', 'f0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000002', 'Hi Sarah! Barnaby matched with your profile. We noticed you enjoy hiking – he is the ultimate trail buddy!', true, NOW() - INTERVAL '3 hours'),
+    ('90000000-0000-0000-0000-000000000011', 'f0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000010', 'Hi! Yes, I hike the Greenbelt every weekend! How is he on the leash?', false, NOW() - INTERVAL '1 hour')
 ON CONFLICT (id) DO NOTHING;
