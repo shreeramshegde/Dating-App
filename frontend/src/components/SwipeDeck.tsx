@@ -19,12 +19,14 @@ interface SwipeDeckProps {
   pets: PetResponse[];
   onSwipe: (petId: string, type: SwipeType) => void;
   onResetDeck: () => void;
+  onOpenCreatePet?: () => void;
 }
 
 export const SwipeDeck: React.FC<SwipeDeckProps> = ({
   pets,
   onSwipe,
   onResetDeck,
+  onOpenCreatePet,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [activePhotoIdx, setActivePhotoIdx] = useState(0);
@@ -86,16 +88,27 @@ export const SwipeDeck: React.FC<SwipeDeckProps> = ({
         <p className="text-sm text-neutral-600 leading-relaxed font-normal">
           No more adoptable pets matching your current filters. Expand your distance or species filters to discover more companions.
         </p>
-        <button
-          onClick={() => {
-            setCurrentIndex(0);
-            onResetDeck();
-          }}
-          className="px-6 py-3 rounded-full bg-hinge-black text-white text-xs font-bold flex items-center gap-2 shadow-md hover:bg-neutral-800 transition-all hover:scale-105 active:scale-95"
-        >
-          <RotateCcw className="w-4 h-4" />
-          <span>Revisit Adoption Deck</span>
-        </button>
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <button
+            onClick={() => {
+              setCurrentIndex(0);
+              onResetDeck();
+            }}
+            className="px-6 py-3 rounded-full bg-hinge-black text-white text-xs font-bold flex items-center gap-2 shadow-md hover:bg-neutral-800 transition-all hover:scale-105 active:scale-95"
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span>Revisit Adoption Deck</span>
+          </button>
+
+          {onOpenCreatePet && (
+            <button
+              onClick={onOpenCreatePet}
+              className="px-6 py-3 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold transition-all"
+            >
+              Post a Pet for Adoption
+            </button>
+          )}
+        </div>
       </div>
     );
   }

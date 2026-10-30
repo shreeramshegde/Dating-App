@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Navbar, NavTab } from './components/Navbar';
-import { MeaowMatchLandingPage } from './components/MeaowMatchLandingPage';
 import { SwipeDeck } from './components/SwipeDeck';
 import { RescueAlertsView } from './components/RescueAlertsView';
 import { MyPetsView } from './components/MyPetsView';
@@ -11,19 +10,20 @@ import { FiltersModal } from './components/FiltersModal';
 import { AuthModal } from './components/AuthModal';
 import { ReportRescueModal } from './components/ReportRescueModal';
 import { CreatePetModal } from './components/CreatePetModal';
-import { CURRENT_USER } from './data/mockPets';
-import { UserProfile, PetResponse, MatchItem, SwipeType, Species, ListingType } from './types';
+import { UserProfile, PetResponse, MatchItem, SwipeType, Species, ListingType, AuthResponse } from './types';
 import { api } from './services/api';
 import { wsService } from './services/websocket';
 
 export function App() {
-  const [viewMode, setViewMode] = useState<'landing' | 'app'>('landing');
+  // Authentication State
+  const [token, setToken] = useState<string | null>(() => api.getToken());
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState<boolean>(true);
 
   // Navigation tab
   const [activeTab, setActiveTab] = useState<NavTab>('explore');
 
-  // Core Data State
-  const [currentUser, setCurrentUser] = useState<UserProfile>(CURRENT_USER);
+  // Real Backend Data State
   const [discoveryPets, setDiscoveryPets] = useState<PetResponse[]>([]);
   const [rescueAlerts, setRescueAlerts] = useState<PetResponse[]>([]);
   const [matches, setMatches] = useState<MatchItem[]>([]);
@@ -36,7 +36,6 @@ export function App() {
     matchId: string | null;
   } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [showAuth, setShowAuth] = useState(false);
   const [showReportRescue, setShowReportRescue] = useState(false);
   const [showCreatePet, setShowCreatePet] = useState(false);
 
@@ -45,86 +44,93 @@ export function App() {
   const [filterListingType, setFilterListingType] = useState<ListingType | undefined>();
   const [filterDistance, setFilterDistance] = useState<number>(50);
 
-  // Settings
-  const [useMock, setUseMock] = useState<boolean>(api.useMock);
+  // Fetch all backend data for authenticated user
+  const loadBackendData = useCallback((user: UserProfile) => {
+    // 1. Fetch Discovery Pets
+    api.getDiscoveryPets(filterSpecies, filterListingType, user.latitude, user.longitude, filterDistance)
+      .then(setDiscoveryPets);
 
-  // Initial Load on mount
+    // 2. Fetch Nearby Emergency Rescue Alerts
+    api.getNearbyRescueAlerts(filterSpecies, user.latitude, user.longitude, filterDistance)
+      .then(setRescueAlerts);
+
+    // 3. Fetch Matches & Inquiries
+    api.getMatches().then(setMatches);
+
+    // 4. Fetch My Listed Pets
+    api.getMyPets().then(setMyPets);
+  }, [filterSpecies, filterListingType, filterDistance]);
+
+  // Authenticate and load profile on mount or token change
   useEffect(() => {
-    let isMounted = true;
+    if (!token) {
+      setCurrentUser(null);
+      setIsLoadingUser(false);
+      wsService.disconnect();
+      return;
+    }
 
-    // Load Discovery Pets
-    api.getDiscoveryPets(filterSpecies, filterListingType, currentUser.latitude, currentUser.longitude, filterDistance)
-      .then((pets) => {
-        if (isMounted) setDiscoveryPets(pets);
+    setIsLoadingUser(true);
+    api.getCurrentUser()
+      .then((user) => {
+        setCurrentUser(user);
+        loadBackendData(user);
+        // Connect real-time STOMP WebSocket
+        wsService.connect(token);
+      })
+      .catch((err) => {
+        console.warn('[App] Could not fetch current user from backend, clearing token:', err);
+        api.setToken(null);
+        setToken(null);
+        setCurrentUser(null);
+        wsService.disconnect();
+      })
+      .finally(() => {
+        setIsLoadingUser(false);
       });
+  }, [token, loadBackendData]);
 
-    // Load Rescue Alerts
-    api.getNearbyRescueAlerts(filterSpecies, currentUser.latitude, currentUser.longitude, filterDistance)
-      .then((alerts) => {
-        if (isMounted) setRescueAlerts(alerts);
-      });
+  // Real-time STOMP notification listener
+  useEffect(() => {
+    if (!token) return;
 
-    // Load Matches & Inquiries
-    api.getMatches().then((m) => {
-      if (isMounted) setMatches(m);
-    });
-
-    // Load My Listed Pets
-    api.getMyPets().then((pets) => {
-      if (isMounted) setMyPets(pets);
-    });
-
-    // Listen for real-time STOMP match notifications
     const unsubNotif = wsService.onMatchNotification((notif) => {
-      if (isMounted) {
-        console.log('[App] Received real-time notification:', notif);
-        api.getMatches().then(setMatches);
-      }
+      console.log('[WebSocket] Real-time notification received:', notif);
+      api.getMatches().then(setMatches);
     });
 
     return () => {
-      isMounted = false;
       unsubNotif();
     };
-  }, []);
+  }, [token]);
 
-  // Sync WebSocket connection with authentication status and mock mode
-  useEffect(() => {
-    const token = api.getToken();
-    if (token && !useMock && !token.startsWith('mock_')) {
-      wsService.connect(token);
-    } else {
-      wsService.disconnect();
-    }
-  }, [currentUser, useMock]);
-
-  const handleToggleMock = (enabled: boolean) => {
-    api.setMockFallback(enabled);
-    setUseMock(enabled);
-    if (enabled) {
-      wsService.disconnect();
-    } else {
-      const token = api.getToken();
-      if (token && !token.startsWith('mock_')) {
-        wsService.connect(token);
-      }
-    }
-    api.getDiscoveryPets().then(setDiscoveryPets);
-    api.getNearbyRescueAlerts().then(setRescueAlerts);
-    api.getMatches().then(setMatches);
-    api.getMyPets().then(setMyPets);
+  // Handle successful login or register
+  const handleAuthSuccess = (auth: AuthResponse) => {
+    api.setToken(auth.token);
+    setToken(auth.token);
   };
 
+  // Sign out
+  const handleSignOut = () => {
+    api.setToken(null);
+    setToken(null);
+    setCurrentUser(null);
+    wsService.disconnect();
+  };
+
+  // Apply filters
   const handleApplyFilters = (species?: Species, listingType?: ListingType, distance?: number) => {
     setFilterSpecies(species);
     setFilterListingType(listingType);
     if (distance) setFilterDistance(distance);
 
-    api.getDiscoveryPets(species, listingType, currentUser.latitude, currentUser.longitude, distance || 50)
-      .then(setDiscoveryPets);
+    if (currentUser) {
+      api.getDiscoveryPets(species, listingType, currentUser.latitude, currentUser.longitude, distance || 50)
+        .then(setDiscoveryPets);
 
-    api.getNearbyRescueAlerts(species, currentUser.latitude, currentUser.longitude, distance || 50)
-      .then(setRescueAlerts);
+      api.getNearbyRescueAlerts(species, currentUser.latitude, currentUser.longitude, distance || 50)
+        .then(setRescueAlerts);
+    }
   };
 
   // Swiping Handler
@@ -137,21 +143,8 @@ export function App() {
           matchId: response.matchId,
         });
 
-        // Add to active matches list
-        setMatches((prev) => [
-          {
-            matchId: response.matchId || `match_${petId}`,
-            matchedUserId: response.matchedPet!.ownerId,
-            matchedUserName: response.matchedPet!.ownerName,
-            matchedUserRole: 'REHOMER',
-            pet: response.matchedPet!,
-            matchType: response.matchedPet!.listingType,
-            lastMessage: `Adoption inquiry submitted for ${response.matchedPet!.name}`,
-            unreadCount: 0,
-            matchedAt: new Date().toISOString(),
-          },
-          ...prev,
-        ]);
+        // Refresh matches
+        api.getMatches().then(setMatches);
       }
     } catch (err) {
       console.error('Swipe error:', err);
@@ -162,7 +155,6 @@ export function App() {
   const handleClaimRescue = async (alertId: string) => {
     try {
       const res = await api.respondToRescueAlert(alertId);
-      // Reload matches
       const updatedMatches = await api.getMatches();
       setMatches(updatedMatches);
       setSelectedMatchId(res.matchId);
@@ -193,46 +185,26 @@ export function App() {
     setMyPets((prev) => prev.filter((p) => p.id !== petId));
   };
 
-  const handleSignOut = () => {
-    api.setToken(null);
-    wsService.disconnect();
-    setViewMode('landing');
-  };
-
-  const criticalAlertsCount = rescueAlerts.filter((a) => a.urgency === 'CRITICAL').length;
-
-  // If in Landing Page mode:
-  if (viewMode === 'landing') {
+  // Loading Screen
+  if (isLoadingUser) {
     return (
-      <>
-        <MeaowMatchLandingPage
-          onLaunchApp={() => setViewMode('app')}
-          onOpenSignIn={() => setShowAuth(true)}
-          onOpenRescue={() => {
-            setActiveTab('rescue');
-            setViewMode('app');
-          }}
-        />
-        {showAuth && (
-          <AuthModal
-            onSuccess={async (authData) => {
-              setShowAuth(false);
-              const myProfile = await api.getCurrentUser();
-              setCurrentUser({
-                ...myProfile,
-                role: authData.role || myProfile.role,
-                fullName: authData.fullName || myProfile.fullName,
-              });
-              setViewMode('app');
-            }}
-            onClose={() => setShowAuth(false)}
-          />
-        )}
-      </>
+      <div className="min-h-screen bg-hinge-cream flex flex-col items-center justify-center p-4">
+        <div className="w-12 h-12 border-4 border-neutral-300 border-t-neutral-900 rounded-full animate-spin" />
+        <p className="mt-4 font-serif text-lg text-neutral-800">
+          Connecting to MeaowMatch backend...
+        </p>
+      </div>
     );
   }
 
-  // Live Web App view:
+  // If not logged in, render the pure Authentication view
+  if (!token || !currentUser) {
+    return <AuthModal onSuccess={handleAuthSuccess} />;
+  }
+
+  const criticalAlertsCount = rescueAlerts.filter((a) => a.urgency === 'CRITICAL').length;
+
+  // Authenticated Application
   return (
     <div className="min-h-screen bg-hinge-cream text-hinge-black flex flex-col font-sans">
       {/* Top Navbar */}
@@ -243,12 +215,11 @@ export function App() {
         unreadCount={matches.reduce((acc, m) => acc + m.unreadCount, 0)}
         criticalAlertsCount={criticalAlertsCount}
         userRole={currentUser.role}
+        userName={currentUser.fullName}
         onOpenFilters={() => setShowFilters(true)}
         onOpenReportRescue={() => setShowReportRescue(true)}
         onOpenCreatePet={() => setShowCreatePet(true)}
-        useMock={useMock}
-        onToggleMock={handleToggleMock}
-        onGoToLanding={() => setViewMode('landing')}
+        onSignOut={handleSignOut}
       />
 
       {/* Main Content Area */}
@@ -260,9 +231,12 @@ export function App() {
               pets={discoveryPets}
               onSwipe={handleSwipe}
               onResetDeck={() => {
-                api.getDiscoveryPets(filterSpecies, filterListingType, currentUser.latitude, currentUser.longitude, filterDistance)
-                  .then(setDiscoveryPets);
+                if (currentUser) {
+                  api.getDiscoveryPets(filterSpecies, filterListingType, currentUser.latitude, currentUser.longitude, filterDistance)
+                    .then(setDiscoveryPets);
+                }
               }}
+              onOpenCreatePet={() => setShowCreatePet(true)}
             />
           </div>
         )}
@@ -329,30 +303,16 @@ export function App() {
         />
       )}
 
-      {/* Auth Modal */}
-      {showAuth && (
-        <AuthModal
-          onSuccess={async (authData) => {
-            setShowAuth(false);
-            const myProfile = await api.getCurrentUser();
-            setCurrentUser({
-              ...myProfile,
-              role: authData.role || myProfile.role,
-              fullName: authData.fullName || myProfile.fullName,
-            });
-          }}
-          onClose={() => setShowAuth(false)}
-        />
-      )}
-
       {/* Emergency Report Animal Modal */}
       {showReportRescue && (
         <ReportRescueModal
           onClose={() => setShowReportRescue(false)}
           onSuccess={() => {
             setShowReportRescue(false);
-            api.getNearbyRescueAlerts(filterSpecies, currentUser.latitude, currentUser.longitude, filterDistance)
-              .then(setRescueAlerts);
+            if (currentUser) {
+              api.getNearbyRescueAlerts(filterSpecies, currentUser.latitude, currentUser.longitude, filterDistance)
+                .then(setRescueAlerts);
+            }
             setActiveTab('rescue');
           }}
         />
@@ -365,7 +325,10 @@ export function App() {
           onSuccess={() => {
             setShowCreatePet(false);
             api.getMyPets().then(setMyPets);
-            api.getDiscoveryPets().then(setDiscoveryPets);
+            if (currentUser) {
+              api.getDiscoveryPets(filterSpecies, filterListingType, currentUser.latitude, currentUser.longitude, filterDistance)
+                .then(setDiscoveryPets);
+            }
             setActiveTab('my-pets');
           }}
         />

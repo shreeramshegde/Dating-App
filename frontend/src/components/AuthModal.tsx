@@ -1,17 +1,13 @@
 import React, { useState } from 'react';
-import { Lock, Mail, X, ArrowRight, User, Phone, MapPin, PawPrint } from 'lucide-react';
+import { Lock, Mail, ArrowRight, User, Phone, MapPin, PawPrint } from 'lucide-react';
 import { api } from '../services/api';
 import { AuthResponse, UserRole } from '../types';
 
 interface AuthModalProps {
   onSuccess: (auth: AuthResponse) => void;
-  onClose: () => void;
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({
-  onSuccess,
-  onClose,
-}) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,98 +32,90 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     try {
       if (isSignUp) {
         const res = await api.register(
-          email, 
+          email.trim(), 
           password, 
           role, 
-          fullName || undefined, 
-          phone || undefined, 
-          city || undefined
+          fullName.trim() || undefined, 
+          phone.trim() || undefined, 
+          city.trim() || undefined
         );
         onSuccess(res);
       } else {
-        const res = await api.login(email, password);
+        const res = await api.login(email.trim(), password);
         onSuccess(res);
       }
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Authentication failed. Please verify credentials.';
-      setError(msg);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDemoLogin = async (demoRole: UserRole = 'ADOPTER') => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const res = await api.register(
-        `demo_${demoRole.toLowerCase()}@meaowmatch.org`,
-        'password123',
-        demoRole,
-        demoRole === 'ADOPTER' ? 'Sarah Jenkins (Adopter)' : demoRole === 'REHOMER' ? 'Austin Animal Haven (Shelter)' : 'Elena Rostova (Rescuer)',
-        '+1 (555) 234-8910',
-        'Austin, TX'
-      );
-      onSuccess(res);
-    } catch {
-      // Fallback
-      onSuccess({
-        token: `mock_jwt_${demoRole.toLowerCase()}`,
-        tokenType: 'Bearer',
-        userId: `demo_user_${demoRole.toLowerCase()}`,
-        email: `demo_${demoRole.toLowerCase()}@meaowmatch.org`,
-        role: demoRole,
-        fullName: demoRole === 'ADOPTER' ? 'Sarah Jenkins' : demoRole === 'REHOMER' ? 'Austin Haven' : 'Elena Spotter',
-        profileCompleted: true,
-      });
+      const serverMsg = err?.response?.data?.message;
+      const validationMap = err?.response?.data?.validationErrors;
+      let msg = serverMsg;
+      if (validationMap && typeof validationMap === 'object') {
+        msg = Object.values(validationMap).join(', ');
+      }
+      setError(msg || err?.message || 'Authentication failed. Please verify your credentials.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md overflow-y-auto">
-      <div 
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md my-8 rounded-[36px] bg-white border border-hinge-border p-7 sm:p-8 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200 text-left max-h-[90vh] overflow-y-auto"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-hinge-black text-amber-300 flex items-center justify-center">
-              <PawPrint className="w-4 h-4" />
-            </div>
+    <div className="min-h-screen bg-hinge-cream flex items-center justify-center p-4">
+      <div className="w-full max-w-md rounded-[36px] bg-white border border-hinge-border p-8 shadow-2xl space-y-6 text-left">
+        {/* Brand Header */}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-hinge-black text-amber-300 flex items-center justify-center shadow-subtle">
+            <PawPrint className="w-5 h-5" />
+          </div>
+          <div>
             <span className="font-serif font-black text-2xl tracking-tight text-hinge-black">
               MeaowMatch
             </span>
+            <p className="text-[10px] text-neutral-500 font-medium">
+              Pet Adoption & Animal Rescue Network
+            </p>
           </div>
+        </div>
 
+        {/* Tab Switcher */}
+        <div className="flex p-1 bg-neutral-100 rounded-2xl border border-neutral-200">
           <button
-            onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-neutral-100 text-neutral-400 hover:text-black"
+            type="button"
+            onClick={() => { setIsSignUp(false); setError(null); }}
+            className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
+              !isSignUp ? 'bg-white text-black shadow-sm' : 'text-neutral-500 hover:text-black'
+            }`}
           >
-            <X className="w-5 h-5" />
+            Sign In
+          </button>
+          <button
+            type="button"
+            onClick={() => { setIsSignUp(true); setError(null); }}
+            className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
+              isSignUp ? 'bg-white text-black shadow-sm' : 'text-neutral-500 hover:text-black'
+            }`}
+          >
+            Create Account
           </button>
         </div>
 
         <div>
           <h2 className="font-serif text-2xl font-bold text-hinge-black">
-            {isSignUp ? 'Join the Community' : 'Sign In'}
+            {isSignUp ? 'Create your profile' : 'Welcome back'}
           </h2>
           <p className="text-xs text-neutral-500 mt-0.5">
             {isSignUp
-              ? 'Connect with pets needing homes and rescue teams across your city.'
-              : 'Log in to view adoption inquiries, active rescue alerts, and messages.'}
+              ? 'Join as an Adopter, Shelter/Rehomer, or Emergency Rescuer.'
+              : 'Log in to manage your pets, view adoption inquiries, and active alerts.'}
           </p>
         </div>
 
         {error && (
-          <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium">
+          <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium leading-relaxed">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3.5">
-          {/* Role Selector (Sign Up Only) */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Role Selection (Registration only) */}
           {isSignUp && (
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider">
@@ -137,7 +125,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {[
                   { r: 'ADOPTER', label: 'Adopter', desc: 'Looking to adopt' },
                   { r: 'REHOMER', label: 'Rehomer', desc: 'Shelter / Owner' },
-                  { r: 'RESCUER', label: 'Rescuer', desc: 'Report distress' },
+                  { r: 'RESCUER', label: 'Rescuer', desc: 'Spotter / First Aid' },
                 ].map((item) => (
                   <button
                     key={item.r}
@@ -166,10 +154,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <input
                   type="text"
                   required
-                  placeholder="Sarah Jenkins"
+                  placeholder="e.g. Sarah Jenkins"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 rounded-xl bg-hinge-cream border border-hinge-border text-xs text-hinge-black placeholder-neutral-400 focus:outline-none focus:border-hinge-black font-medium"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-hinge-cream border border-hinge-border text-xs text-hinge-black placeholder-neutral-400 focus:outline-none focus:border-hinge-black font-medium"
                 />
               </div>
             </div>
@@ -191,7 +179,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           </div>
 
-          {/* Password (min 8 chars) */}
+          {/* Password (min 8 characters) */}
           <div>
             <label className="block text-xs font-bold text-neutral-700 mb-1">
               Password (min. 8 characters)
@@ -246,57 +234,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3.5 rounded-full font-bold text-white bg-hinge-black hover:bg-neutral-800 shadow-md flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-98 transition-all"
+            className="w-full py-3.5 rounded-full font-bold text-white bg-hinge-black hover:bg-neutral-800 shadow-md flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-98 transition-all disabled:opacity-50"
           >
-            <span>{isLoading ? 'Connecting...' : isSignUp ? 'Create Account' : 'Sign In'}</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>{isLoading ? 'Connecting to AWS backend...' : isSignUp ? 'Create Account' : 'Sign In'}</span>
+            <ArrowRight className="w-4 h-4 text-amber-300" />
           </button>
         </form>
-
-        <div className="relative flex items-center justify-center my-3">
-          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-hinge-border"></div></div>
-          <span className="relative px-3 bg-white text-[10px] text-neutral-400 uppercase tracking-widest font-bold">
-            One-Click Evaluator Testing
-          </span>
-        </div>
-
-        {/* 1-Click Role Testing */}
-        <div className="grid grid-cols-3 gap-2">
-          <button
-            type="button"
-            onClick={() => handleDemoLogin('ADOPTER')}
-            disabled={isLoading}
-            className="py-2.5 px-2 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-[11px] font-bold text-amber-900 transition-colors"
-          >
-            🐾 Adopter Demo
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleDemoLogin('REHOMER')}
-            disabled={isLoading}
-            className="py-2.5 px-2 rounded-2xl bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 text-[11px] font-bold text-neutral-900 transition-colors"
-          >
-            🏡 Shelter Demo
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleDemoLogin('RESCUER')}
-            disabled={isLoading}
-            className="py-2.5 px-2 rounded-2xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-[11px] font-bold text-rose-900 transition-colors"
-          >
-            🚨 Rescuer Demo
-          </button>
-        </div>
-
-        <div className="text-center text-xs text-neutral-500 font-medium pt-1">
-          {isSignUp ? (
-            <span>Already have an account? <button type="button" onClick={() => setIsSignUp(false)} className="text-hinge-black font-bold hover:underline">Sign In</button></span>
-          ) : (
-            <span>New to MeaowMatch? <button type="button" onClick={() => setIsSignUp(true)} className="text-hinge-black font-bold hover:underline">Join as an Adopter or Shelter</button></span>
-          )}
-        </div>
       </div>
     </div>
   );
