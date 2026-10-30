@@ -127,7 +127,7 @@ if command -v docker >/dev/null 2>&1; then
                 -t dating-frontend "${FRONTEND_DIR}"
             docker stop dating-frontend >/dev/null 2>&1 || true
             docker rm dating-frontend >/dev/null 2>&1 || true
-            docker run -d --name dating-frontend -p 80:80 --restart unless-stopped dating-frontend
+            docker run -d --name dating-frontend -p "${FRONTEND_PORT:-3000}:80" --restart unless-stopped dating-frontend
         fi
         echo "Frontend container reloaded with new backend endpoints!"
     else
@@ -137,7 +137,7 @@ if command -v docker >/dev/null 2>&1; then
         echo "Or run standalone with Dockerfile:"
         echo "  cd ${FRONTEND_DIR}"
         echo "  docker build --build-arg VITE_API_BASE_URL=\"${API_BASE_URL}\" --build-arg VITE_WS_URL=\"${WS_URL}\" -t dating-frontend ."
-        echo "  docker run -d --name dating-frontend -p 80:80 --restart unless-stopped dating-frontend"
+        echo "  docker run -d --name dating-frontend -p 3000:80 --restart unless-stopped dating-frontend"
     fi
 fi
 
