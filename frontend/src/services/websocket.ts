@@ -10,9 +10,28 @@ class WebSocketService {
   private matchNotificationListeners: Array<(notif: any) => void> = [];
 
   connect(token: string | null) {
+    // Only connect if a valid, non-mock JWT token is present
+    if (!token || !token.trim() || token.startsWith('mock_')) {
+      console.log('[WebSocket] Skipping STOMP connection: missing or mock JWT token');
+      return;
+    }
+
     if (this.client && this.isConnected) return;
 
+    // If client exists but is not connected, deactivate first
+    if (this.client) {
+      try {
+        this.client.deactivate();
+      } catch (e) {
+        // ignore
+      }
+      this.client = null;
+      this.isConnected = false;
+    }
+
     try {
+      const authHeader = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+
       this.client = new Client({
         webSocketFactory: () => {
           try {
@@ -22,7 +41,7 @@ class WebSocketService {
             return null as any;
           }
         },
-        connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
+        connectHeaders: { Authorization: authHeader },
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
         heartbeatOutgoing: 4000,
@@ -49,12 +68,31 @@ class WebSocketService {
       };
 
       this.client.onStompError = (frame) => {
-        console.warn('[WebSocket] STOMP broker error:', frame.headers['message']);
+        const errorMsg = frame.headers['message'] || '';
+        console.warn('[WebSocket] STOMP broker error:', errorMsg);
+
+        // If rejected due to missing or invalid JWT, halt reconnect loop
+        if (errorMsg.toLowerCase().includes('unauthorized') || errorMsg.toLowerCase().includes('jwt')) {
+          console.warn('[WebSocket] Authentication rejected by broker. Halting STOMP reconnect.');
+          this.disconnect();
+        }
       };
 
       this.client.activate();
     } catch (err) {
       console.warn('[WebSocket] Activation failed:', err);
+    }
+  }
+
+  disconnect() {
+    if (this.client) {
+      try {
+        this.client.deactivate();
+      } catch (err) {
+        console.warn('[WebSocket] Error during disconnect:', err);
+      }
+      this.client = null;
+      this.isConnected = false;
     }
   }
 
@@ -96,13 +134,6 @@ class WebSocketService {
       body: JSON.stringify({ matchId, content }),
     });
     return true;
-  }
-
-  disconnect() {
-    if (this.client) {
-      this.client.deactivate();
-      this.isConnected = false;
-    }
   }
 }
 

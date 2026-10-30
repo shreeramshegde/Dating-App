@@ -47,10 +47,6 @@ export function App() {
       if (isMounted) setMatches(m);
     });
 
-    // Connect WebSocket client
-    const token = api.getToken();
-    wsService.connect(token);
-
     // Listen for real-time match notifications
     const unsubNotif = wsService.onMatchNotification((notif) => {
       if (notif.type === 'MATCH' && isMounted) {
@@ -64,9 +60,27 @@ export function App() {
     };
   }, []);
 
+  // Sync WebSocket connection with authentication status and mock mode
+  useEffect(() => {
+    const token = api.getToken();
+    if (token && !useMock && !token.startsWith('mock_')) {
+      wsService.connect(token);
+    } else {
+      wsService.disconnect();
+    }
+  }, [currentUser, useMock]);
+
   const handleToggleMock = (enabled: boolean) => {
     api.setMockFallback(enabled);
     setUseMock(enabled);
+    if (enabled) {
+      wsService.disconnect();
+    } else {
+      const token = api.getToken();
+      if (token && !token.startsWith('mock_')) {
+        wsService.connect(token);
+      }
+    }
     api.getDiscoveryFeed().then(setDiscoveryCards);
     api.getMatches().then(setMatches);
   };
@@ -131,6 +145,9 @@ export function App() {
               setShowAuth(false);
               const myProfile = await api.getMyProfile();
               setCurrentUser(myProfile);
+              if (authData.token && !authData.token.startsWith('mock_')) {
+                wsService.connect(authData.token);
+              }
               if (!authData.profileCompleted) {
                 setShowOnboarding(true);
               }

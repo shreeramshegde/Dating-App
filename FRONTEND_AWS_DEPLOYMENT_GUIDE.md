@@ -119,29 +119,37 @@ git checkout main
 
 ## 7. Point Frontend to Backend (`update-backend-url.sh`)
 
-Run the automated endpoint configuration script with your **Backend EC2 Public IP**:
+Run the automated endpoint configuration script from the repository root with your **Backend EC2 Public IP**:
 
 ```bash
-./frontend/update-backend-url.sh <YOUR_BACKEND_EC2_PUBLIC_IP>
+./scripts/update-backend-url.sh <YOUR_BACKEND_EC2_PUBLIC_IP>
 ```
 
 *Example:*
 ```bash
-./frontend/update-backend-url.sh 3.25.130.67
+./scripts/update-backend-url.sh 3.25.130.67
 ```
 
 The script automatically:
-1. Normalizes the address into REST API (`http://3.25.130.67:8080/api/v1`) and WebSocket (`http://3.25.130.67:8080/ws`) endpoints.
+1. Normalizes the address into REST API (`http://3.25.130.67:8080/api/v1`) and STOMP WebSocket (`http://3.25.130.67:8080/ws`) endpoints.
 2. Writes/updates `frontend/.env.local`.
-3. Prepares build arguments for Vite.
+3. Clears any conflicting container name (`dating-frontend`) automatically.
+4. Builds and launches the frontend container on port **`3000`** via Docker Compose.
 
 ---
 
-## 8. Launch the Frontend Container
+## 8. Launch the Frontend Container Manually (Optional)
+
+If you ran the script in Step 7, your container is **already running**!
+
+If you prefer to start or restart it manually at any time:
 
 ### Option A: Using Docker Compose (Recommended)
 
 ```bash
+# If a conflicting container exists, remove it first:
+docker rm -f dating-frontend 2>/dev/null || true
+
 cd frontend
 docker compose up -d --build
 
@@ -154,6 +162,9 @@ docker compose logs -f
 ### Option B: Using Standalone Dockerfile
 
 ```bash
+# Remove old container if running
+docker rm -f dating-frontend 2>/dev/null || true
+
 cd frontend
 
 # Build image with injected backend endpoints
@@ -235,7 +246,7 @@ If either EC2 instance is stopped and restarted, AWS assigns new dynamic Public 
    On Frontend EC2:
    ```bash
    cd ~/Dating-App
-   ./frontend/update-backend-url.sh <NEW_BACKEND_EC2_IP>
+   ./scripts/update-backend-url.sh <NEW_BACKEND_EC2_IP>
    ```
 2. **If Frontend IP changes**:
    On Backend EC2:

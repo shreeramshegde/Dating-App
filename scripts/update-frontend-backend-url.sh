@@ -1,1 +1,1 @@
-../frontend/update-backend-url.sh
+update-backend-url.sh
