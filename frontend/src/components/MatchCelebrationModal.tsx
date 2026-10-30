@@ -1,111 +1,135 @@
 import React, { useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Heart, MessageCircle, Sparkles, X } from 'lucide-react';
-import { DiscoveryCard, UserProfile } from '../types';
+import { MessageCircle, Sparkles, X, PawPrint } from 'lucide-react';
+import { PetResponse, UserProfile } from '../types';
 
 interface MatchCelebrationModalProps {
-  matchedProfile: DiscoveryCard | null;
+  pet: PetResponse;
   currentUser: UserProfile;
-  matchId: string | null;
-  onStartChat: (matchId: string) => void;
+  onStartChat: () => void;
   onClose: () => void;
 }
 
 export const MatchCelebrationModal: React.FC<MatchCelebrationModalProps> = ({
-  matchedProfile,
+  pet,
   currentUser,
-  matchId,
   onStartChat,
   onClose,
 }) => {
   useEffect(() => {
-    if (matchedProfile) {
-      // Confetti burst
+    // Confetti blast
+    const count = 200;
+    const defaults = {
+      origin: { y: 0.7 },
+      zIndex: 9999,
+    };
+
+    function fire(particleRatio: number, opts: confetti.Options) {
       confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#1B3B36', '#A24838', '#EAE4D8', '#121212'],
+        ...defaults,
+        ...opts,
+        particleCount: Math.floor(count * particleRatio),
       });
     }
-  }, [matchedProfile]);
 
-  if (!matchedProfile) return null;
+    fire(0.25, {
+      spread: 26,
+      startVelocity: 55,
+    });
+    fire(0.2, {
+      spread: 60,
+    });
+    fire(0.35, {
+      spread: 100,
+      decay: 0.91,
+      scalar: 0.8,
+    });
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 25,
+      decay: 0.92,
+      scalar: 1.2,
+    });
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 45,
+    });
+  }, []);
+
+  const petPhotoUrl = pet.photos[0]?.photoUrl || 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&q=80';
+  const userPhotoUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
       <div 
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md rounded-[36px] bg-white border border-hinge-border p-8 shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-300"
+        className="relative w-full max-w-md rounded-[36px] bg-white border border-amber-300 p-8 text-center space-y-6 shadow-2xl animate-in zoom-in-95 duration-200"
       >
+        {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full hover:bg-neutral-100 text-neutral-400 hover:text-black transition-colors"
+          className="absolute top-5 right-5 p-2 rounded-full hover:bg-neutral-100 text-neutral-400 hover:text-black transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
-        {/* Floating Sparks Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-hinge-stone text-hinge-dark border border-hinge-border text-xs font-bold uppercase tracking-wider">
-          <Sparkles className="w-3.5 h-3.5 text-hinge-terracotta" />
-          It's a Match!
-        </div>
-
-        <h2 className="text-3xl font-serif font-bold text-hinge-black tracking-tight">
-          Mutual Spark!
-        </h2>
-        <p className="text-sm text-neutral-600 -mt-2">
-          You and <span className="font-bold text-hinge-black">{matchedProfile.firstName}</span> liked each other.
-        </p>
-
-        {/* Dual Avatars with Overlap */}
-        <div className="relative flex items-center justify-center py-4">
-          <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl -mr-4 z-10 bg-neutral-200">
+        {/* Mutual Spark Avatars */}
+        <div className="relative pt-4 flex items-center justify-center">
+          {/* User Avatar */}
+          <div className="relative z-10 w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl translate-x-3 -rotate-6">
             <img
-              src={currentUser.photos[0]?.photoUrl}
-              alt={currentUser.firstName}
+              src={userPhotoUrl}
+              alt={currentUser.fullName}
               className="w-full h-full object-cover"
             />
           </div>
 
-          <div className="w-10 h-10 rounded-full bg-hinge-black flex items-center justify-center text-white z-20 shadow-md">
-            <Heart className="w-5 h-5 fill-white animate-bounce" />
+          {/* Spark Center Icon */}
+          <div className="absolute z-30 w-12 h-12 rounded-full bg-amber-400 text-neutral-900 border-4 border-white shadow-lg flex items-center justify-center animate-bounce">
+            <PawPrint className="w-6 h-6 fill-neutral-900" />
           </div>
 
-          <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl -ml-4 z-10 bg-neutral-200">
+          {/* Pet Avatar */}
+          <div className="relative z-20 w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl -translate-x-3 rotate-6">
             <img
-              src={matchedProfile.photos[0]?.photoUrl}
-              alt={matchedProfile.firstName}
+              src={petPhotoUrl}
+              alt={pet.name}
               className="w-full h-full object-cover"
             />
           </div>
         </div>
 
-        {/* Profile Bio quote snippet */}
-        <div className="p-4 rounded-2xl bg-hinge-cream border border-hinge-border text-left text-xs space-y-1">
-          <span className="text-[10px] uppercase font-bold text-neutral-500">
-            About {matchedProfile.firstName}
-          </span>
-          <p className="font-serif italic text-xs text-hinge-black font-medium leading-relaxed">
-            "{matchedProfile.bio}"
+        {/* Text Header */}
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-bold border border-amber-200 uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <span>Adoption Inquiry Connected</span>
+          </div>
+
+          <h2 className="font-serif text-3xl font-bold tracking-tight text-hinge-black">
+            It's a Match with {pet.name}!
+          </h2>
+
+          <p className="text-xs text-neutral-600 max-w-xs mx-auto leading-relaxed">
+            <strong>{pet.ownerName}</strong> has been notified of your adoption interest. Reach out now to introduce yourself and schedule a visit!
           </p>
         </div>
 
-        {/* Buttons */}
-        <div className="pt-2 space-y-3">
+        {/* Action Buttons */}
+        <div className="space-y-3 pt-2">
           <button
-            onClick={() => onStartChat(matchId || `match_${matchedProfile.userId}`)}
-            className="w-full py-4 px-6 rounded-full font-bold text-white bg-hinge-black hover:bg-neutral-800 shadow-md flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-98 transition-all"
+            onClick={onStartChat}
+            className="w-full py-3.5 rounded-full font-bold text-white bg-hinge-black hover:bg-neutral-800 shadow-xl shadow-neutral-900/15 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-98 transition-all"
           >
-            <MessageCircle className="w-4 h-4" />
-            <span>Say Hello to {matchedProfile.firstName}</span>
+            <MessageCircle className="w-4 h-4 text-amber-400" />
+            <span>Message {pet.ownerName}</span>
           </button>
 
           <button
             onClick={onClose}
-            className="w-full py-3 px-6 rounded-full text-xs font-semibold text-neutral-600 hover:text-black hover:bg-neutral-100 transition-colors"
+            className="w-full py-3 rounded-full font-semibold text-xs text-neutral-600 hover:text-black hover:bg-neutral-100 transition-colors"
           >
-            Keep Swiping
+            Keep Browsing Pets
           </button>
         </div>
       </div>

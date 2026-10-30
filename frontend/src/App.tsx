@@ -1,166 +1,227 @@
-import { useState, useEffect } from 'react';
-import { Navbar } from './components/Navbar';
-import { HingeLandingPage } from './components/HingeLandingPage';
+import { useState, useEffect, useCallback } from 'react';
+import { Navbar, NavTab } from './components/Navbar';
 import { SwipeDeck } from './components/SwipeDeck';
-import { MatchCelebrationModal } from './components/MatchCelebrationModal';
+import { RescueAlertsView } from './components/RescueAlertsView';
+import { MyPetsView } from './components/MyPetsView';
 import { ChatView } from './components/ChatView';
-import { ProfileEditorModal } from './components/ProfileEditorModal';
-import { OnboardingModal } from './components/OnboardingModal';
-import { FilterModal } from './components/FilterModal';
+import { ProfileView } from './components/ProfileView';
+import { MatchCelebrationModal } from './components/MatchCelebrationModal';
+import { FiltersModal } from './components/FiltersModal';
 import { AuthModal } from './components/AuthModal';
-import { CURRENT_USER } from './data/mockProfiles';
-import { UserProfile, DiscoveryCard, MatchItem, SwipeType } from './types';
+import { MeaowMatchLandingPage } from './components/MeaowMatchLandingPage';
+import { ReportRescueModal } from './components/ReportRescueModal';
+import { CreatePetModal } from './components/CreatePetModal';
+import { UserProfile, PetResponse, MatchItem, SwipeType, Species, ListingType, AuthResponse } from './types';
 import { api } from './services/api';
 import { wsService } from './services/websocket';
-import { User, CheckCircle2 } from 'lucide-react';
 
 export function App() {
-  const [viewMode, setViewMode] = useState<'landing' | 'app'>('landing');
+  // Authentication State
+  const [token, setToken] = useState<string | null>(() => api.getToken());
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState<boolean>(() => !!api.getToken());
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
 
-  const [currentUser, setCurrentUser] = useState<UserProfile>(CURRENT_USER);
-  const [discoveryCards, setDiscoveryCards] = useState<DiscoveryCard[]>([]);
-  const [activeTab, setActiveTab] = useState<'explore' | 'matches' | 'profile'>('explore');
+  // Navigation tab
+  const [activeTab, setActiveTab] = useState<NavTab>('explore');
+
+  // Real Backend Data State
+  const [discoveryPets, setDiscoveryPets] = useState<PetResponse[]>([]);
+  const [rescueAlerts, setRescueAlerts] = useState<PetResponse[]>([]);
   const [matches, setMatches] = useState<MatchItem[]>([]);
+  const [myPets, setMyPets] = useState<PetResponse[]>([]);
   const [selectedMatchId, setSelectedMatchId] = useState<string>('');
 
   // Modals state
-  const [celebrationMatch, setCelebrationMatch] = useState<{
-    profile: DiscoveryCard;
+  const [celebrationPet, setCelebrationPet] = useState<{
+    pet: PetResponse;
     matchId: string | null;
   } | null>(null);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showProfileEditor, setShowProfileEditor] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [showAuth, setShowAuth] = useState(false);
+  const [showReportRescue, setShowReportRescue] = useState(false);
+  const [showCreatePet, setShowCreatePet] = useState(false);
 
-  // Settings
-  const [useMock, setUseMock] = useState<boolean>(api.useMock);
+  // Filters State
+  const [filterSpecies, setFilterSpecies] = useState<Species | undefined>();
+  const [filterListingType, setFilterListingType] = useState<ListingType | undefined>();
+  const [filterDistance, setFilterDistance] = useState<number>(50);
 
-  // Load feed and matches on mount
+  // Fetch all backend data for authenticated user
+  const loadBackendData = useCallback((user: UserProfile) => {
+    // 1. Fetch Discovery Pets
+    api.getDiscoveryPets(filterSpecies, filterListingType, user.latitude, user.longitude, filterDistance)
+      .then(setDiscoveryPets);
+
+    // 2. Fetch Nearby Emergency Rescue Alerts
+    api.getNearbyRescueAlerts(filterSpecies, user.latitude, user.longitude, filterDistance)
+      .then(setRescueAlerts);
+
+    // 3. Fetch Matches & Inquiries
+    api.getMatches().then(setMatches);
+
+    // 4. Fetch My Listed Pets
+    api.getMyPets().then(setMyPets);
+  }, [filterSpecies, filterListingType, filterDistance]);
+
+  // Authenticate and load profile on mount or token change
   useEffect(() => {
-    let isMounted = true;
-    api.getDiscoveryFeed().then((cards) => {
-      if (isMounted) setDiscoveryCards(cards);
-    });
+    if (!token) {
+      setCurrentUser(null);
+      setIsLoadingUser(false);
+      wsService.disconnect();
+      return;
+    }
 
-    api.getMatches().then((m) => {
-      if (isMounted) setMatches(m);
-    });
+    setIsLoadingUser(true);
+    api.getCurrentUser()
+      .then((user) => {
+        setCurrentUser(user);
+        loadBackendData(user);
+        // Connect real-time STOMP WebSocket
+        wsService.connect(token);
+      })
+      .catch((err) => {
+        console.warn('[App] Could not fetch current user from backend, clearing token:', err);
+        api.setToken(null);
+        setToken(null);
+        setCurrentUser(null);
+        wsService.disconnect();
+      })
+      .finally(() => {
+        setIsLoadingUser(false);
+      });
+  }, [token, loadBackendData]);
 
-    // Listen for real-time match notifications
+  // Real-time STOMP notification listener
+  useEffect(() => {
+    if (!token) return;
+
     const unsubNotif = wsService.onMatchNotification((notif) => {
-      if (notif.type === 'MATCH' && isMounted) {
-        api.getMatches().then(setMatches);
-      }
+      console.log('[WebSocket] Real-time notification received:', notif);
+      api.getMatches().then(setMatches);
     });
 
     return () => {
-      isMounted = false;
       unsubNotif();
     };
-  }, []);
+  }, [token]);
 
-  // Sync WebSocket connection with authentication status and mock mode
-  useEffect(() => {
-    const token = api.getToken();
-    if (token && !useMock && !token.startsWith('mock_')) {
-      wsService.connect(token);
-    } else {
-      wsService.disconnect();
-    }
-  }, [currentUser, useMock]);
-
-  const handleToggleMock = (enabled: boolean) => {
-    api.setMockFallback(enabled);
-    setUseMock(enabled);
-    if (enabled) {
-      wsService.disconnect();
-    } else {
-      const token = api.getToken();
-      if (token && !token.startsWith('mock_')) {
-        wsService.connect(token);
-      }
-    }
-    api.getDiscoveryFeed().then(setDiscoveryCards);
-    api.getMatches().then(setMatches);
+  // Handle successful login or register
+  const handleAuthSuccess = (auth: AuthResponse) => {
+    api.setToken(auth.token);
+    setToken(auth.token);
   };
 
-  const handleSwipe = async (targetUserId: string, type: SwipeType) => {
+  // Sign out
+  const handleSignOut = () => {
+    api.setToken(null);
+    setToken(null);
+    setCurrentUser(null);
+    setShowAuthModal(false);
+    wsService.disconnect();
+  };
+
+  // Apply filters
+  const handleApplyFilters = (species?: Species, listingType?: ListingType, distance?: number) => {
+    setFilterSpecies(species);
+    setFilterListingType(listingType);
+    if (distance) setFilterDistance(distance);
+
+    if (currentUser) {
+      api.getDiscoveryPets(species, listingType, currentUser.latitude, currentUser.longitude, distance || 50)
+        .then(setDiscoveryPets);
+
+      api.getNearbyRescueAlerts(species, currentUser.latitude, currentUser.longitude, distance || 50)
+        .then(setRescueAlerts);
+    }
+  };
+
+  // Swiping Handler
+  const handleSwipe = async (petId: string, type: SwipeType) => {
     try {
-      const response = await api.submitSwipe(targetUserId, type);
-      if (response.match && response.matchedProfile) {
-        setCelebrationMatch({
-          profile: response.matchedProfile,
+      const response = await api.submitSwipe(petId, type);
+      if (response.match && response.matchedPet) {
+        setCelebrationPet({
+          pet: response.matchedPet,
           matchId: response.matchId,
         });
 
-        // Add to matches
-        setMatches((prev) => [
-          {
-            matchId: response.matchId || `match_${targetUserId}`,
-            targetUserId: response.matchedProfile!.userId,
-            targetFirstName: response.matchedProfile!.firstName,
-            targetPhotoUrl: response.matchedProfile!.photos[0]?.photoUrl || '',
-            lastMessage: null,
-            lastMessageTime: null,
-            unreadCount: 0,
-            matchedAt: 'Just now',
-          },
-          ...prev,
-        ]);
+        // Refresh matches
+        api.getMatches().then(setMatches);
       }
     } catch (err) {
       console.error('Swipe error:', err);
     }
   };
 
-  const handleStartChatFromMatch = (matchId: string) => {
-    setCelebrationMatch(null);
-    setSelectedMatchId(matchId);
-    setActiveTab('matches');
+  // Claim Rescue Alert Handler
+  const handleClaimRescue = async (alertId: string) => {
+    try {
+      const res = await api.respondToRescueAlert(alertId);
+      const updatedMatches = await api.getMatches();
+      setMatches(updatedMatches);
+      setSelectedMatchId(res.matchId);
+      setActiveTab('matches');
+    } catch (err) {
+      console.error('Claim rescue error:', err);
+    }
   };
 
-  const handleUnmatch = (matchId: string) => {
+  const handleStartChatFromCelebration = () => {
+    if (celebrationPet) {
+      const mId = celebrationPet.matchId || `match_${celebrationPet.pet.id}`;
+      setSelectedMatchId(mId);
+      setCelebrationPet(null);
+      setActiveTab('matches');
+    }
+  };
+
+  const handleCloseConversation = (matchId: string) => {
     setMatches((prev) => prev.filter((m) => m.matchId !== matchId));
     if (selectedMatchId === matchId) {
       setSelectedMatchId('');
     }
   };
 
-  const handleSaveProfile = (updated: UserProfile) => {
-    setCurrentUser(updated);
+  const handleDeletePet = async (petId: string) => {
+    await api.deletePet(petId);
+    setMyPets((prev) => prev.filter((p) => p.id !== petId));
   };
 
-  // If in Landing Page mode (Lost & Found marketing site):
-  if (viewMode === 'landing') {
+  // Loading Screen
+  if (isLoadingUser) {
     return (
-      <>
-        <HingeLandingPage
-          onLaunchApp={() => setViewMode('app')}
-          onOpenSignIn={() => setShowAuth(true)}
-        />
-        {showAuth && (
-          <AuthModal
-            onSuccess={async (authData) => {
-              setShowAuth(false);
-              const myProfile = await api.getMyProfile();
-              setCurrentUser(myProfile);
-              if (authData.token && !authData.token.startsWith('mock_')) {
-                wsService.connect(authData.token);
-              }
-              if (!authData.profileCompleted) {
-                setShowOnboarding(true);
-              }
-              setViewMode('app');
-            }}
-            onClose={() => setShowAuth(false)}
-          />
-        )}
-      </>
+      <div className="min-h-screen bg-hinge-cream flex flex-col items-center justify-center p-4">
+        <div className="w-12 h-12 border-4 border-neutral-300 border-t-neutral-900 rounded-full animate-spin" />
+        <p className="mt-4 font-serif text-lg text-neutral-800">
+          Connecting to MeaowMatch backend...
+        </p>
+      </div>
     );
   }
 
-  // Live Web App view:
+  // If not logged in, render Landing Page first, then Sign In / Sign Up
+  if (!token || !currentUser) {
+    if (showAuthModal) {
+      return (
+        <AuthModal
+          onSuccess={handleAuthSuccess}
+          onClose={() => setShowAuthModal(false)}
+        />
+      );
+    }
+    return (
+      <MeaowMatchLandingPage
+        onLaunchApp={() => setShowAuthModal(true)}
+        onOpenSignIn={() => setShowAuthModal(true)}
+        onOpenRescue={() => setShowAuthModal(true)}
+      />
+    );
+  }
+
+  const criticalAlertsCount = rescueAlerts.filter((a) => a.urgency === 'CRITICAL').length;
+
+  // Authenticated Application
   return (
     <div className="min-h-screen bg-hinge-cream text-hinge-black flex flex-col font-sans">
       {/* Top Navbar */}
@@ -169,206 +230,127 @@ export function App() {
         setActiveTab={setActiveTab}
         matchesCount={matches.length}
         unreadCount={matches.reduce((acc, m) => acc + m.unreadCount, 0)}
+        criticalAlertsCount={criticalAlertsCount}
+        userRole={currentUser.role}
+        userName={currentUser.fullName}
         onOpenFilters={() => setShowFilters(true)}
-        useMock={useMock}
-        onToggleMock={handleToggleMock}
-        onGoToLanding={() => setViewMode('landing')}
+        onOpenReportRescue={() => setShowReportRescue(true)}
+        onOpenCreatePet={() => setShowCreatePet(true)}
+        onSignOut={handleSignOut}
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 flex flex-col items-center">
-        {/* TAB 1: EXPLORE DECK */}
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 flex flex-col">
+        {/* 1. Pet Adoption Deck View */}
         {activeTab === 'explore' && (
-          <div className="w-full pt-4">
+          <div className="flex-1 flex flex-col justify-center py-4">
             <SwipeDeck
-              cards={discoveryCards}
+              pets={discoveryPets}
               onSwipe={handleSwipe}
-              onResetDeck={() => api.getDiscoveryFeed().then(setDiscoveryCards)}
+              onResetDeck={() => {
+                if (currentUser) {
+                  api.getDiscoveryPets(filterSpecies, filterListingType, currentUser.latitude, currentUser.longitude, filterDistance)
+                    .then(setDiscoveryPets);
+                }
+              }}
+              onOpenCreatePet={() => setShowCreatePet(true)}
             />
           </div>
         )}
 
-        {/* TAB 2: MATCHES & CHAT */}
+        {/* 2. Emergency Rescue Radar View */}
+        {activeTab === 'rescue' && (
+          <RescueAlertsView
+            alerts={rescueAlerts}
+            onClaimRescue={handleClaimRescue}
+            onOpenReportModal={() => setShowReportRescue(true)}
+          />
+        )}
+
+        {/* 3. Messages & Inquiries View */}
         {activeTab === 'matches' && (
-          <div className="w-full">
-            <ChatView
-              matches={matches}
-              currentUser={currentUser}
-              selectedMatchId={selectedMatchId}
-              onSelectMatch={setSelectedMatchId}
-              onUnmatch={handleUnmatch}
-            />
-          </div>
+          <ChatView
+            matches={matches}
+            currentUser={currentUser}
+            selectedMatchId={selectedMatchId}
+            onSelectMatch={setSelectedMatchId}
+            onUnmatch={handleCloseConversation}
+          />
         )}
 
-        {/* TAB 3: MY PROFILE */}
+        {/* 4. Shelter & Rehomer My Pets View */}
+        {activeTab === 'my-pets' && (
+          <MyPetsView
+            myPets={myPets}
+            onOpenCreatePet={() => setShowCreatePet(true)}
+            onDeletePet={handleDeletePet}
+          />
+        )}
+
+        {/* 5. User Profile View */}
         {activeTab === 'profile' && (
-          <div className="w-full max-w-lg mx-auto space-y-6 animate-in fade-in duration-200 pb-12 text-left">
-            {/* User Profile Header Card */}
-            <div className="bg-white rounded-[32px] p-7 border border-hinge-border shadow-subtle relative overflow-hidden">
-              <div className="flex items-center gap-5">
-                <div className="relative w-20 h-20 rounded-2xl overflow-hidden border border-hinge-border shadow-sm bg-neutral-100">
-                  <img
-                    src={currentUser.photos[0]?.photoUrl}
-                    alt={currentUser.firstName}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-2xl font-serif font-bold text-hinge-black">
-                      {currentUser.firstName}, {currentUser.age}
-                    </h2>
-                    <CheckCircle2 className="w-5 h-5 text-sky-500" />
-                  </div>
-                  <p className="text-xs text-neutral-500 font-medium mt-0.5">{currentUser.city}</p>
-                  <span className="inline-block mt-2 px-3 py-1 rounded-full text-[11px] font-semibold bg-hinge-stone text-neutral-800 border border-hinge-border">
-                    Interested in {currentUser.genderPreference.toLowerCase()}
-                  </span>
-                </div>
-              </div>
-
-              {/* Bio */}
-              <p className="mt-5 text-sm text-neutral-700 leading-relaxed italic border-t border-hinge-border pt-4 font-serif">
-                "{currentUser.bio}"
-              </p>
-
-              {/* Action Buttons */}
-              <div className="mt-6 flex flex-wrap gap-3">
-                <button
-                  onClick={() => setShowProfileEditor(true)}
-                  className="flex-1 py-3 px-5 rounded-full text-xs font-bold bg-hinge-black hover:bg-neutral-800 text-white shadow-sm flex items-center justify-center gap-2"
-                >
-                  <User className="w-4 h-4" /> Edit Profile & Photos
-                </button>
-                <button
-                  onClick={() => setShowAuth(true)}
-                  className="py-3 px-5 rounded-full text-xs font-semibold bg-white hover:bg-neutral-50 text-neutral-700 border border-hinge-border"
-                >
-                  Switch Account
-                </button>
-              </div>
-            </div>
-
-            {/* Photos Preview */}
-            <div className="bg-white rounded-[32px] p-7 border border-hinge-border shadow-subtle space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500">
-                  Your Photo Gallery ({currentUser.photos.length}/6)
-                </h3>
-                <button
-                  onClick={() => setShowProfileEditor(true)}
-                  className="text-xs font-bold text-hinge-black hover:underline"
-                >
-                  Manage
-                </button>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                {currentUser.photos.map((p) => (
-                  <div key={p.id} className="relative aspect-[3/4] rounded-2xl overflow-hidden border border-hinge-border bg-neutral-100">
-                    <img src={p.photoUrl} alt="Gallery" className="w-full h-full object-cover" />
-                    {p.isPrimary && (
-                      <span className="absolute bottom-2 left-2 text-[10px] bg-black/70 px-2 py-0.5 rounded-full text-white font-bold">
-                        Primary
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Quick Stats Grid */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white rounded-2xl p-5 border border-hinge-border text-center shadow-subtle">
-                <span className="block text-3xl font-serif font-bold text-hinge-black">{matches.length}</span>
-                <span className="text-xs text-neutral-500 mt-1 font-semibold">Active Matches</span>
-              </div>
-              <div className="bg-white rounded-2xl p-5 border border-hinge-border text-center shadow-subtle">
-                <span className="block text-3xl font-serif font-bold text-emerald-700">100%</span>
-                <span className="text-xs text-neutral-500 mt-1 font-semibold">Profile Completed</span>
-              </div>
-            </div>
-          </div>
+          <ProfileView
+            currentUser={currentUser}
+            matchesCount={matches.length}
+            myPetsCount={myPets.length}
+            onUpdateUser={setCurrentUser}
+            onSignOut={handleSignOut}
+          />
         )}
       </main>
 
-      {/* Celebration Modal: It's a match! */}
-      {celebrationMatch && (
+      {/* Celebration Modal: Adoption Match! */}
+      {celebrationPet && (
         <MatchCelebrationModal
-          matchedProfile={celebrationMatch.profile}
+          pet={celebrationPet.pet}
           currentUser={currentUser}
-          matchId={celebrationMatch.matchId}
-          onStartChat={handleStartChatFromMatch}
-          onClose={() => setCelebrationMatch(null)}
-        />
-      )}
-
-      {/* Edit Profile Modal */}
-      {showProfileEditor && (
-        <ProfileEditorModal
-          currentUser={currentUser}
-          onClose={() => setShowProfileEditor(false)}
-          onSave={handleSaveProfile}
+          onStartChat={handleStartChatFromCelebration}
+          onClose={() => setCelebrationPet(null)}
         />
       )}
 
       {/* Preferences / Filter Modal */}
       {showFilters && (
-        <FilterModal
-          maxDistanceKm={currentUser.maxDistanceKm}
-          minAgePref={currentUser.minAgePref}
-          maxAgePref={currentUser.maxAgePref}
-          genderPreference={currentUser.genderPreference}
+        <FiltersModal
+          currentSpecies={filterSpecies}
+          currentListingType={filterListingType}
+          currentDistance={filterDistance}
+          onApply={handleApplyFilters}
           onClose={() => setShowFilters(false)}
-          onApply={(updatedFilters) => {
-            setCurrentUser((prev) => ({
-              ...prev,
-              ...updatedFilters,
-            }));
-            api.updateMyProfile({
-              firstName: currentUser.firstName,
-              birthDate: currentUser.birthDate || '1998-05-14',
-              gender: currentUser.gender,
-              genderPreference: updatedFilters.genderPreference,
-              bio: currentUser.bio,
-              city: currentUser.city,
-              maxDistanceKm: updatedFilters.maxDistanceKm,
-              minAgePref: updatedFilters.minAgePref,
-              maxAgePref: updatedFilters.maxAgePref,
-            });
-          }}
         />
       )}
 
-      {/* Onboarding Modal for incomplete profile */}
-      {showOnboarding && (
-        <OnboardingModal
-          currentUser={currentUser}
-          onCompleted={(completedUser) => {
-            setCurrentUser(completedUser);
-            setShowOnboarding(false);
-          }}
-        />
-      )}
-
-      {/* Auth Modal */}
-      {showAuth && (
-        <AuthModal
-          onSuccess={async (authData) => {
-            setShowAuth(false);
-            const myProfile = await api.getMyProfile();
-            setCurrentUser(myProfile);
-            if (!authData.profileCompleted) {
-              setShowOnboarding(true);
+      {/* Emergency Report Animal Modal */}
+      {showReportRescue && (
+        <ReportRescueModal
+          onClose={() => setShowReportRescue(false)}
+          onSuccess={() => {
+            setShowReportRescue(false);
+            if (currentUser) {
+              api.getNearbyRescueAlerts(filterSpecies, currentUser.latitude, currentUser.longitude, filterDistance)
+                .then(setRescueAlerts);
             }
-            setViewMode('app');
+            setActiveTab('rescue');
           }}
-          onClose={() => setShowAuth(false)}
+        />
+      )}
+
+      {/* Post Pet for Adoption Modal */}
+      {showCreatePet && (
+        <CreatePetModal
+          onClose={() => setShowCreatePet(false)}
+          onSuccess={() => {
+            setShowCreatePet(false);
+            api.getMyPets().then(setMyPets);
+            if (currentUser) {
+              api.getDiscoveryPets(filterSpecies, filterListingType, currentUser.latitude, currentUser.longitude, filterDistance)
+                .then(setDiscoveryPets);
+            }
+            setActiveTab('my-pets');
+          }}
         />
       )}
     </div>
   );
 }
-
 export default App;
