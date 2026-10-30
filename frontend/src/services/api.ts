@@ -17,290 +17,6 @@ import {
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://3.25.130.67:8080/api/v1';
 
-const DEFAULT_DISCOVERY_PETS: PetResponse[] = [
-  {
-    id: 'pet-seed-1',
-    ownerId: 'shelter-austin-1',
-    ownerName: 'Austin Animal Haven',
-    name: 'Luna',
-    species: 'CAT',
-    breed: 'Domestic Short Hair',
-    ageMonths: 14,
-    gender: 'FEMALE',
-    size: 'SMALL',
-    description: 'Playful, vocal, and deeply affectionate cat. Loves gentle forehead rubs and chirps at birds by the window. Fully vaccinated & litter trained.',
-    listingType: 'ADOPTION',
-    urgency: 'NORMAL',
-    healthStatus: 'Spayed, Microchipped, FeLV/FIV Negative',
-    status: 'AVAILABLE',
-    city: 'Austin, TX',
-    latitude: 30.2672,
-    longitude: -97.7431,
-    photos: [
-      { id: 'p1', photoUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80', isPrimary: true, displayOrder: 0 },
-      { id: 'p2', photoUrl: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=800&q=80', isPrimary: false, displayOrder: 1 },
-    ],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'pet-seed-2',
-    ownerId: 'shelter-austin-2',
-    ownerName: 'Hill Country Rescue',
-    name: 'Barnaby',
-    species: 'DOG',
-    breed: 'Australian Shepherd Mix',
-    ageMonths: 24,
-    gender: 'MALE',
-    size: 'MEDIUM',
-    description: 'High energy, exceptionally smart, and eager to please. Looking for an active household with a yard or someone who loves hiking trails.',
-    listingType: 'ADOPTION',
-    urgency: 'NORMAL',
-    healthStatus: 'Neutered, Core Vaccinations up to date, Heartworm negative',
-    status: 'AVAILABLE',
-    city: 'Austin, TX',
-    latitude: 30.2849,
-    longitude: -97.7341,
-    photos: [
-      { id: 'p3', photoUrl: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=800&q=80', isPrimary: true, displayOrder: 0 },
-      { id: 'p4', photoUrl: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80', isPrimary: false, displayOrder: 1 },
-    ],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'pet-seed-3',
-    ownerId: 'foster-roundrock-1',
-    ownerName: 'Central Texas Foster Network',
-    name: 'Milo',
-    species: 'DOG',
-    breed: 'Golden Retriever Mix',
-    ageMonths: 8,
-    gender: 'MALE',
-    size: 'LARGE',
-    description: 'Gentle giant in training! Friendly with other dogs, kids, and strangers. Working on basic leash manners.',
-    listingType: 'FOSTER',
-    urgency: 'HIGH',
-    healthStatus: 'Puppy vaccines completed, Dewormed',
-    status: 'AVAILABLE',
-    city: 'Round Rock, TX',
-    latitude: 30.5083,
-    longitude: -97.6789,
-    photos: [
-      { id: 'p5', photoUrl: 'https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?auto=format&fit=crop&w=800&q=80', isPrimary: true, displayOrder: 0 },
-    ],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'pet-seed-4',
-    ownerId: 'shelter-bunnies-1',
-    ownerName: 'Austin Rabbit Sanctuary',
-    name: 'Thumper & Clover',
-    species: 'SMALL_ANIMAL',
-    breed: 'Holland Lop Bunnies',
-    ageMonths: 18,
-    gender: 'UNKNOWN',
-    size: 'SMALL',
-    description: 'Bonded pair of gentle bunnies. Must be adopted together! They enjoy indoor free-roaming and fresh organic cilantro.',
-    listingType: 'ADOPTION',
-    urgency: 'NORMAL',
-    healthStatus: 'Neutered & Spayed pair',
-    status: 'AVAILABLE',
-    city: 'Austin, TX',
-    latitude: 30.2500,
-    longitude: -97.7500,
-    photos: [
-      { id: 'p6', photoUrl: 'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=800&q=80', isPrimary: true, displayOrder: 0 },
-    ],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'pet-seed-5',
-    ownerId: 'shelter-birds-1',
-    ownerName: 'Lone Star Avian Sanctuary',
-    name: 'Kiwi & Sunny',
-    species: 'BIRD',
-    breed: 'Peach-faced Lovebirds',
-    ageMonths: 20,
-    gender: 'UNKNOWN',
-    size: 'SMALL',
-    description: 'Sweet, inquisitive lovebird pair. They sing soft melodic whistles in the morning and love crunching on millet sprays and apple slices.',
-    listingType: 'ADOPTION',
-    urgency: 'NORMAL',
-    healthStatus: 'Avian vet check completed, Beak & Feather healthy',
-    status: 'AVAILABLE',
-    city: 'Austin, TX',
-    latitude: 30.3000,
-    longitude: -97.7200,
-    photos: [
-      { id: 'p7', photoUrl: 'https://images.unsplash.com/photo-1552728089-57bdde30beb3?auto=format&fit=crop&w=800&q=80', isPrimary: true, displayOrder: 0 },
-    ],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'pet-seed-6',
-    ownerId: 'shelter-reptiles-1',
-    ownerName: 'Austin Herpetological Society',
-    name: 'Ziggy',
-    species: 'REPTILE',
-    breed: 'Central Bearded Dragon',
-    ageMonths: 36,
-    gender: 'MALE',
-    size: 'MEDIUM',
-    description: 'Very docile, loves basking under warm UV lamps and sitting on shoulders while you read. Enjoys collard greens and dubia roaches.',
-    listingType: 'ADOPTION',
-    urgency: 'NORMAL',
-    healthStatus: 'Healthy calcium levels, sheds smoothly',
-    status: 'AVAILABLE',
-    city: 'Cedar Park, TX',
-    latitude: 30.5050,
-    longitude: -97.8200,
-    photos: [
-      { id: 'p8', photoUrl: 'https://images.unsplash.com/photo-1508817628294-5a453fa0b8fb?auto=format&fit=crop&w=800&q=80', isPrimary: true, displayOrder: 0 },
-    ],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'pet-seed-7',
-    ownerId: 'shelter-austin-1',
-    ownerName: 'Austin Animal Haven',
-    name: 'Oliver',
-    species: 'CAT',
-    breed: 'Maine Coon Mix',
-    ageMonths: 30,
-    gender: 'MALE',
-    size: 'MEDIUM',
-    description: 'Fluffy, polydactyl sweetheart with a deep purr. Gets along well with calm dogs and enjoys sleeping at the foot of the bed.',
-    listingType: 'ADOPTION',
-    urgency: 'NORMAL',
-    healthStatus: 'Neutered, Microchipped, Vaccinations current',
-    status: 'AVAILABLE',
-    city: 'Austin, TX',
-    latitude: 30.2700,
-    longitude: -97.7400,
-    photos: [
-      { id: 'p9', photoUrl: 'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=800&q=80', isPrimary: true, displayOrder: 0 },
-    ],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'pet-seed-8',
-    ownerId: 'foster-roundrock-1',
-    ownerName: 'Central Texas Foster Network',
-    name: 'Bella',
-    species: 'DOG',
-    breed: 'Corgi Mix',
-    ageMonths: 15,
-    gender: 'FEMALE',
-    size: 'SMALL',
-    description: 'Spirited, smiling, and compact companion. Loves fetch, squeaky balls, and learning new agility tricks. Great with children.',
-    listingType: 'ADOPTION',
-    urgency: 'NORMAL',
-    healthStatus: 'Spayed, Vaccinated, Monthly flea/tick preventive',
-    status: 'AVAILABLE',
-    city: 'Austin, TX',
-    latitude: 30.2900,
-    longitude: -97.7500,
-    photos: [
-      { id: 'p10', photoUrl: 'https://images.unsplash.com/photo-1612536057832-2ff7ead58194?auto=format&fit=crop&w=800&q=80', isPrimary: true, displayOrder: 0 },
-    ],
-    createdAt: new Date().toISOString(),
-  },
-];
-
-const DEFAULT_RESCUE_ALERTS: PetResponse[] = [
-  {
-    id: 'rescue-seed-1',
-    ownerId: 'volunteer-dispatch-1',
-    ownerName: 'Emergency Spotter Team',
-    name: 'Injured Calico Stray',
-    species: 'CAT',
-    breed: 'Domestic Calico',
-    ageMonths: 12,
-    gender: 'FEMALE',
-    size: 'SMALL',
-    description: 'Limping on front right paw near South Congress food trailers. Appears frightened but approachable. Needs immediate transport to Austin Animal Clinic.',
-    listingType: 'RESCUE_ALERT',
-    urgency: 'CRITICAL',
-    healthStatus: 'Front paw injury, dehydration suspected',
-    status: 'AVAILABLE',
-    city: 'Austin, TX',
-    latitude: 30.2504,
-    longitude: -97.7495,
-    photos: [
-      { id: 'r1', photoUrl: 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=800&q=80', isPrimary: true, displayOrder: 0 },
-    ],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'rescue-seed-2',
-    ownerId: 'volunteer-dispatch-2',
-    ownerName: 'Walnut Creek Field Rescuer',
-    name: 'Abandoned Senior Terrier',
-    species: 'DOG',
-    breed: 'Terrier Mix',
-    ageMonths: 84,
-    gender: 'MALE',
-    size: 'SMALL',
-    description: 'Found wandering near Walnut Creek Park trailhead without collar or microchip. Very calm and docile. Needs temporary foster or shelter intake.',
-    listingType: 'RESCUE_ALERT',
-    urgency: 'HIGH',
-    healthStatus: 'Mild cataract, no visible open wounds',
-    status: 'AVAILABLE',
-    city: 'Austin, TX',
-    latitude: 30.4011,
-    longitude: -97.6974,
-    photos: [
-      { id: 'r2', photoUrl: 'https://images.unsplash.com/photo-1561037404-61cd46aa615b?auto=format&fit=crop&w=800&q=80', isPrimary: true, displayOrder: 0 },
-    ],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'rescue-seed-3',
-    ownerId: 'volunteer-dispatch-3',
-    ownerName: 'Downtown Bird Rescue',
-    name: 'Disoriented Urban Songbird',
-    species: 'BIRD',
-    breed: 'Native Songbird',
-    ageMonths: 6,
-    gender: 'UNKNOWN',
-    size: 'SMALL',
-    description: 'Window strike collision near 6th and Congress office plaza. Breathing rapidly, kept safe in a ventilated cardboard box. Awaiting licensed wildlife rehabilitator.',
-    listingType: 'RESCUE_ALERT',
-    urgency: 'CRITICAL',
-    healthStatus: 'Window collision stun, slight wing droop',
-    status: 'AVAILABLE',
-    city: 'Austin, TX',
-    latitude: 30.2680,
-    longitude: -97.7420,
-    photos: [
-      { id: 'r3', photoUrl: 'https://images.unsplash.com/photo-1444464666168-49d633b86797?auto=format&fit=crop&w=800&q=80', isPrimary: true, displayOrder: 0 },
-    ],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'rescue-seed-4',
-    ownerId: 'volunteer-dispatch-4',
-    ownerName: 'Barton Springs Greenbelt Watch',
-    name: 'Displaced River Turtle',
-    species: 'REPTILE',
-    breed: 'Red-eared Slider',
-    ageMonths: 48,
-    gender: 'UNKNOWN',
-    size: 'SMALL',
-    description: 'Crossed over MoPac frontage road barrier away from water. Moved to safe grass embankment. Needs relocation to protected creek basin.',
-    listingType: 'RESCUE_ALERT',
-    urgency: 'HIGH',
-    healthStatus: 'Shell intact, active and responsive',
-    status: 'AVAILABLE',
-    city: 'Austin, TX',
-    latitude: 30.2600,
-    longitude: -97.7700,
-    photos: [
-      { id: 'r4', photoUrl: 'https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?auto=format&fit=crop&w=800&q=80', isPrimary: true, displayOrder: 0 },
-    ],
-    createdAt: new Date().toISOString(),
-  },
-];
-
 class ApiService {
   private client: AxiosInstance;
 
@@ -438,7 +154,13 @@ class ApiService {
       const { data } = await this.client.put<any>('/auth/me', update);
       backendData = data || {};
     } catch {
-      // Backend may not support PUT /auth/me yet
+      // Backend may also support PUT /auth/profile
+      try {
+        const { data } = await this.client.put<any>('/auth/profile', update);
+        backendData = data || {};
+      } catch {
+        // ignore
+      }
     }
 
     let localMeta: any = {};
@@ -468,108 +190,30 @@ class ApiService {
     };
   }
 
-  // --- Local Persistence Helpers for Resilience ---
-  private getLocalPets(): PetResponse[] {
-    try {
-      const stored = localStorage.getItem('meaowmatch_local_pets');
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  }
-
-  private saveLocalPet(pet: PetResponse): void {
-    const list = this.getLocalPets();
-    list.unshift(pet);
-    try {
-      localStorage.setItem('meaowmatch_local_pets', JSON.stringify(list));
-    } catch {
-      // ignore
-    }
-  }
-
-  private getLocalAlerts(): PetResponse[] {
-    try {
-      const stored = localStorage.getItem('meaowmatch_local_alerts');
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  }
-
-  private saveLocalAlert(alert: PetResponse): void {
-    const list = this.getLocalAlerts();
-    list.unshift(alert);
-    try {
-      localStorage.setItem('meaowmatch_local_alerts', JSON.stringify(list));
-    } catch {
-      // ignore
-    }
-  }
-
   // --- Pet Listings & Photo Upload APIs ---
   async getMyPets(): Promise<PetResponse[]> {
-    const local = this.getLocalPets();
     try {
       const { data } = await this.client.get<PetResponse[]>('/pets/my-pets');
-      if (Array.isArray(data) && data.length > 0) return data;
+      if (Array.isArray(data)) return data;
     } catch {
       try {
         const { data } = await this.client.get<PetResponse[]>('/pets/my');
-        if (Array.isArray(data) && data.length > 0) return data;
+        if (Array.isArray(data)) return data;
       } catch {
-        // Backend deploy pending on EC2
+        // ignore
       }
     }
-    return local;
+    return [];
   }
 
   async createPet(request: PetCreateRequest): Promise<PetResponse> {
-    let created: PetResponse;
-    try {
-      const { data } = await this.client.post<PetResponse>('/pets', request);
-      created = data;
-    } catch {
-      created = {
-        id: 'pet-' + Date.now(),
-        ownerId: 'me',
-        ownerName: 'Current User',
-        name: request.name,
-        species: request.species,
-        breed: request.breed || 'Mixed Breed',
-        ageMonths: request.ageMonths ?? 12,
-        gender: request.gender || 'UNKNOWN',
-        size: request.size || 'MEDIUM',
-        description: request.description || '',
-        listingType: request.listingType || 'ADOPTION',
-        urgency: request.urgency || 'NORMAL',
-        healthStatus: request.healthStatus || 'Healthy',
-        status: 'AVAILABLE',
-        city: request.city || 'Austin, TX',
-        latitude: request.latitude ?? 30.2672,
-        longitude: request.longitude ?? -97.7431,
-        photos: (request.photoUrls || []).map((url, i) => ({
-          id: 'photo-' + i,
-          photoUrl: url,
-          isPrimary: i === 0,
-          displayOrder: i,
-        })),
-        createdAt: new Date().toISOString(),
-      };
-    }
-    this.saveLocalPet(created);
-    return created;
+    const { data } = await this.client.post<PetResponse>('/pets', request);
+    return data;
   }
 
   async deletePet(petId: string): Promise<void> {
     try {
       await this.client.delete(`/pets/${petId}`);
-    } catch {
-      // ignore
-    }
-    const filtered = this.getLocalPets().filter((p) => p.id !== petId);
-    try {
-      localStorage.setItem('meaowmatch_local_pets', JSON.stringify(filtered));
     } catch {
       // ignore
     }
@@ -607,7 +251,7 @@ class ApiService {
     return presign.publicUrl;
   }
 
-  // --- Discovery Swiping Deck APIs ---
+  // --- Discovery Swiping Deck APIs (Fetches Real Data from Database) ---
   async getDiscoveryPets(
     species?: Species,
     listingType?: ListingType,
@@ -626,44 +270,27 @@ class ApiService {
 
     try {
       const { data } = await this.client.get<PetResponse[]>(`/discovery/pets?${params.toString()}`);
-      if (Array.isArray(data) && data.length > 0) return data;
-    } catch {
-      // Fallback
+      if (Array.isArray(data)) return data;
+    } catch (err) {
+      console.warn('[api] Failed to fetch discovery pets from backend:', err);
     }
-
-    return DEFAULT_DISCOVERY_PETS.filter((p) => {
-      if (species && p.species !== species) return false;
-      if (listingType && p.listingType !== listingType) return false;
-      return true;
-    });
+    return [];
   }
 
   async submitSwipe(petId: string, type: SwipeType): Promise<SwipeResponse> {
-    try {
-      const { data } = await this.client.post<SwipeResponse>('/swipes', {
-        petId,
-        type,
-      });
+    const { data } = await this.client.post<SwipeResponse>('/swipes', {
+      petId,
+      type,
+    });
 
-      const isMatch = (data as any).match ?? (data as any).isMatch ?? false;
-      return {
-        ...data,
-        match: isMatch,
-      };
-    } catch {
-      // Graceful fallback for interactive demonstration
-      const matched = type === 'LIKE' && Math.random() > 0.4;
-      const pet = DEFAULT_DISCOVERY_PETS.find((p) => p.id === petId) || DEFAULT_DISCOVERY_PETS[0];
-      return {
-        match: matched,
-        matchId: matched ? `match_${pet.id}` : null,
-        matchedPet: matched ? pet : null,
-        message: matched ? "It's a Match!" : 'Passed',
-      };
-    }
+    const isMatch = (data as any).match ?? (data as any).isMatch ?? false;
+    return {
+      ...data,
+      match: isMatch,
+    };
   }
 
-  // --- Emergency Animal Rescue Alerts APIs ---
+  // --- Emergency Animal Rescue Alerts APIs (Fetches Real Data from Database) ---
   async getNearbyRescueAlerts(
     species?: Species,
     latitude?: number,
@@ -671,7 +298,6 @@ class ApiService {
     maxDistanceKm: number = 50,
     limit: number = 20
   ): Promise<PetResponse[]> {
-    const localAlerts = this.getLocalAlerts();
     const params = new URLSearchParams();
     if (species) params.append('species', species);
     if (latitude) params.append('latitude', String(latitude));
@@ -681,67 +307,23 @@ class ApiService {
 
     try {
       const { data } = await this.client.get<PetResponse[]>(`/rescue-alerts/nearby?${params.toString()}`);
-      if (Array.isArray(data) && data.length > 0) return [...localAlerts, ...data];
-    } catch {
-      // Fallback
+      if (Array.isArray(data)) return data;
+    } catch (err) {
+      console.warn('[api] Failed to fetch rescue alerts from backend:', err);
     }
-
-    const combined = [...localAlerts, ...DEFAULT_RESCUE_ALERTS];
-    return combined.filter((a) => {
-      if (species && a.species !== species) return false;
-      return true;
-    });
+    return [];
   }
 
   async reportRescueAlert(request: RescueReportRequest): Promise<PetResponse> {
-    let created: PetResponse;
-    try {
-      const { data } = await this.client.post<PetResponse>('/rescue-alerts', request);
-      created = data;
-    } catch {
-      created = {
-        id: 'rescue-' + Date.now(),
-        ownerId: 'rescuer-me',
-        ownerName: 'Field Spotter',
-        name: `${request.species} Distress Alert`,
-        species: request.species,
-        breed: 'Stray / Rescue',
-        ageMonths: 12,
-        gender: 'UNKNOWN',
-        size: 'MEDIUM',
-        description: `${request.injuryDetails ? `[Urgent: ${request.injuryDetails}] ` : ''}${request.description || ''}`,
-        listingType: 'RESCUE_ALERT',
-        urgency: request.urgency || 'HIGH',
-        healthStatus: request.injuryDetails || 'Injured / Distressed',
-        status: 'AVAILABLE',
-        city: 'Austin, TX',
-        latitude: request.latitude,
-        longitude: request.longitude,
-        photos: (request.photoUrls || []).map((url, i) => ({
-          id: 'photo-r-' + i,
-          photoUrl: url,
-          isPrimary: i === 0,
-          displayOrder: i,
-        })),
-        createdAt: new Date().toISOString(),
-      };
-    }
-    this.saveLocalAlert(created);
-    return created;
+    const { data } = await this.client.post<PetResponse>('/rescue-alerts', request);
+    return data;
   }
 
   async respondToRescueAlert(alertId: string): Promise<{ matchId: string; message: string }> {
-    try {
-      const { data } = await this.client.post<{ matchId: string; message: string }>(
-        `/rescue-alerts/${alertId}/respond`
-      );
-      return data;
-    } catch {
-      return {
-        matchId: `rescue_coord_${alertId}`,
-        message: 'Rescue coordination initiated successfully. Contacting field volunteer...',
-      };
-    }
+    const { data } = await this.client.post<{ matchId: string; message: string }>(
+      `/rescue-alerts/${alertId}/respond`
+    );
+    return data;
   }
 
   // --- Conversations & Real-Time Chat APIs ---
@@ -776,21 +358,10 @@ class ApiService {
   }
 
   async sendMessage(matchId: string, content: string): Promise<ChatMessage> {
-    try {
-      const { data } = await this.client.post<ChatMessage>(`/matches/${matchId}/messages`, {
-        content,
-      });
-      return data;
-    } catch {
-      return {
-        id: 'msg-' + Date.now(),
-        matchId,
-        senderId: 'me',
-        content,
-        sentAt: new Date().toISOString(),
-        read: true,
-      };
-    }
+    const { data } = await this.client.post<ChatMessage>(`/matches/${matchId}/messages`, {
+      content,
+    });
+    return data;
   }
 
   async markMessagesRead(matchId: string): Promise<void> {

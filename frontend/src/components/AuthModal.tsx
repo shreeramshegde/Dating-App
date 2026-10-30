@@ -102,7 +102,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose }) => {
           <button
             type="button"
             onClick={() => { setIsSignUp(false); setError(null); }}
-            className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
+            className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all whitespace-nowrap select-none ${
               !isSignUp ? 'bg-white text-black shadow-sm' : 'text-neutral-500 hover:text-black'
             }`}
           >
@@ -111,7 +111,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose }) => {
           <button
             type="button"
             onClick={() => { setIsSignUp(true); setError(null); }}
-            className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
+            className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all whitespace-nowrap select-none ${
               isSignUp ? 'bg-white text-black shadow-sm' : 'text-neutral-500 hover:text-black'
             }`}
           >

@@ -4,11 +4,10 @@ import {
   MessageCircleHeart, 
   User, 
   SlidersHorizontal, 
-  Radio, 
   AlertTriangle, 
-  PawPrint,
-  PlusCircle,
-  LogOut
+  PawPrint, 
+  PlusCircle, 
+  LogOut 
 } from 'lucide-react';
 import { UserRole } from '../types';
 
@@ -45,171 +44,240 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSignOut,
 }) => {
   return (
-    <header className="sticky top-0 z-40 w-full bg-hinge-cream/95 backdrop-blur-md border-b border-hinge-border">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
-        {/* MeaowMatch Brand Logo */}
-        <div 
-          onClick={() => setActiveTab('explore')} 
-          className="flex items-center gap-2.5 cursor-pointer group select-none shrink-0"
-          title="MeaowMatch Pet Adoption & Rescue"
-        >
-          <div className="w-9 h-9 rounded-2xl bg-hinge-black text-amber-300 flex items-center justify-center shadow-subtle group-hover:scale-105 transition-transform">
-            <PawPrint className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-serif font-black text-xl tracking-tight text-hinge-black">
-                MeaowMatch
-              </span>
-              <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
-                {isGuest ? 'Guest Preview' : (userRole || 'ADOPTER')}
-              </span>
-            </div>
-            {userName && (
-              <p className="text-[10px] text-neutral-500 font-medium truncate max-w-[120px] sm:max-w-none text-left">
-                {userName}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Center Navigation Tabs */}
-        <nav className="flex items-center gap-1 bg-white p-1 rounded-full border border-hinge-border shadow-subtle overflow-x-auto scrollbar-none">
-          {/* 1. Adoption Deck */}
-          <button
-            onClick={() => setActiveTab('explore')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap ${
-              activeTab === 'explore'
-                ? 'bg-hinge-black text-white shadow-sm'
-                : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Adopt Pets</span>
-          </button>
-
-          {/* 2. Emergency Rescue Radar */}
-          <button
-            onClick={() => setActiveTab('rescue')}
-            className={`relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap ${
-              activeTab === 'rescue'
-                ? 'bg-rose-700 text-white shadow-sm'
-                : 'text-neutral-600 hover:text-rose-700 hover:bg-rose-50'
-            }`}
-          >
-            <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />
-            <span>Emergency Radar</span>
-            {criticalAlertsCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white animate-pulse">
-                {criticalAlertsCount}
-              </span>
-            )}
-          </button>
-
-          {/* 3. Conversations & Active Inquiries */}
-          <button
-            onClick={() => setActiveTab('matches')}
-            className={`relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap ${
-              activeTab === 'matches'
-                ? 'bg-hinge-black text-white shadow-sm'
-                : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
-            }`}
-          >
-            <MessageCircleHeart className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Messages</span>
-            {unreadCount > 0 && (
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-            )}
-          </button>
-
-          {/* 4. Shelter & Rehomer Listings */}
-          <button
-            onClick={() => setActiveTab('my-pets')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap ${
-              activeTab === 'my-pets'
-                ? 'bg-hinge-black text-white shadow-sm'
-                : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
-            }`}
-          >
-            <PawPrint className="w-3.5 h-3.5 text-amber-600" />
-            <span className="hidden sm:inline">My Listings</span>
-          </button>
-
-          {/* 5. User Profile */}
-          <button
-            onClick={() => setActiveTab('profile')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap ${
-              activeTab === 'profile'
-                ? 'bg-hinge-black text-white shadow-sm'
-                : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
-            }`}
-          >
-            <User className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Profile</span>
-          </button>
-        </nav>
-
-        {/* Right Tools & Action Buttons */}
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Quick Action: Report Animal in Distress */}
-          <button
-            onClick={onOpenReportRescue}
-            title="Report an injured or stray animal"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 transition-colors shadow-subtle"
-          >
-            <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
-            <span className="hidden md:inline">Report Distress</span>
-          </button>
-
-          {/* Quick Action: Post a Pet for Adoption */}
-          <button
-            onClick={onOpenCreatePet}
-            title="Post a pet for adoption or foster"
-            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 transition-colors shadow-subtle"
-          >
-            <PlusCircle className="w-3.5 h-3.5 text-amber-700" />
-            <span>Post Pet</span>
-          </button>
-
-          {/* Filter Preferences Button (Visible when in explore or rescue) */}
-          {(activeTab === 'explore' || activeTab === 'rescue') && (
-            <button
-              onClick={onOpenFilters}
-              title="Filters & Preferences"
-              className="p-2 rounded-full bg-white hover:bg-neutral-100 text-neutral-700 hover:text-black border border-hinge-border transition-colors shadow-subtle"
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-            </button>
-          )}
-
-          {/* Live AWS Backend Connected Pill */}
+    <>
+      {/* 1. Main Top Header Bar (Desktop & Mobile) */}
+      <header className="sticky top-0 z-40 w-full bg-hinge-cream/95 backdrop-blur-md border-b border-hinge-border">
+        <div className="max-w-6xl mx-auto px-3 sm:px-5 h-16 flex items-center justify-between gap-2 sm:gap-4">
+          {/* Brand Logo */}
           <div 
-            title="Connected to AWS EC2 Backend: http://3.25.130.67:8080"
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-semibold bg-emerald-50 border border-emerald-300 text-emerald-800"
+            onClick={() => setActiveTab('explore')} 
+            className="flex items-center gap-2 cursor-pointer group select-none shrink-0"
+            title="MeaowMatch Pet Adoption & Rescue"
           >
-            <Radio className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
-            <span className="hidden xl:inline">AWS Backend</span>
+            <div className="w-9 h-9 rounded-2xl bg-hinge-black text-amber-300 flex items-center justify-center shadow-subtle group-hover:scale-105 transition-transform shrink-0">
+              <PawPrint className="w-5 h-5" />
+            </div>
+            <div className="flex flex-col text-left">
+              <div className="flex items-center gap-1.5 leading-none">
+                <span className="font-serif font-black text-xl tracking-tight text-hinge-black whitespace-nowrap">
+                  MeaowMatch
+                </span>
+                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200 whitespace-nowrap">
+                  {isGuest ? 'Guest' : (userRole || 'ADOPTER')}
+                </span>
+              </div>
+              {userName && !isGuest && (
+                <span className="text-[10px] text-neutral-500 font-medium truncate max-w-[110px] sm:max-w-[160px] pt-0.5">
+                  {userName}
+                </span>
+              )}
+            </div>
           </div>
 
-          {/* Sign In (Guest) or Sign Out (User) */}
-          {isGuest ? (
+          {/* Desktop Center Navigation (Visible on md: and above - NEVER scrolls or clips Profile) */}
+          <nav className="hidden md:flex items-center gap-1 bg-white p-1 rounded-full border border-hinge-border shadow-subtle shrink-0">
+            {/* 1. Adopt Pets */}
             <button
-              onClick={onOpenAuth}
-              className="px-4 py-1.5 rounded-full text-xs font-bold bg-hinge-black text-white hover:bg-neutral-800 shadow-sm transition-all"
+              onClick={() => setActiveTab('explore')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+                activeTab === 'explore'
+                  ? 'bg-hinge-black text-white shadow-sm'
+                  : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
+              }`}
             >
-              Sign In
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Adopt</span>
             </button>
-          ) : (
+
+            {/* 2. Emergency Rescue Radar */}
             <button
-              onClick={onSignOut}
-              title="Sign Out"
-              className="p-2 rounded-full hover:bg-neutral-100 text-neutral-400 hover:text-rose-600 transition-colors"
+              onClick={() => setActiveTab('rescue')}
+              className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+                activeTab === 'rescue'
+                  ? 'bg-rose-700 text-white shadow-sm'
+                  : 'text-neutral-600 hover:text-rose-700 hover:bg-rose-50'
+              }`}
             >
-              <LogOut className="w-4 h-4" />
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />
+              <span>Radar</span>
+              {criticalAlertsCount > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-rose-500 text-white animate-pulse">
+                  {criticalAlertsCount}
+                </span>
+              )}
             </button>
-          )}
+
+            {/* 3. Messages & Inquiries */}
+            <button
+              onClick={() => setActiveTab('matches')}
+              className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+                activeTab === 'matches'
+                  ? 'bg-hinge-black text-white shadow-sm'
+                  : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
+              }`}
+            >
+              <MessageCircleHeart className="w-3.5 h-3.5" />
+              <span>Messages</span>
+              {unreadCount > 0 && (
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+              )}
+            </button>
+
+            {/* 4. Shelter & Rehomer Listings */}
+            <button
+              onClick={() => setActiveTab('my-pets')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+                activeTab === 'my-pets'
+                  ? 'bg-hinge-black text-white shadow-sm'
+                  : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
+              }`}
+            >
+              <PawPrint className="w-3.5 h-3.5 text-amber-600" />
+              <span>Listings</span>
+            </button>
+
+            {/* 5. User Profile (ALWAYS 100% visible on desktop without scrolling) */}
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+                activeTab === 'profile'
+                  ? 'bg-hinge-black text-white shadow-sm'
+                  : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
+              }`}
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>Profile</span>
+            </button>
+          </nav>
+
+          {/* Right Action Tools & Auth */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Quick Filter Button */}
+            {(activeTab === 'explore' || activeTab === 'rescue') && (
+              <button
+                onClick={onOpenFilters}
+                title="Filter by Species or Distance"
+                className="p-2 rounded-full bg-white hover:bg-neutral-100 text-neutral-700 hover:text-black border border-hinge-border transition-colors shadow-subtle shrink-0"
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+              </button>
+            )}
+
+            {/* Quick Report Distress Button */}
+            <button
+              onClick={onOpenReportRescue}
+              title="Report an injured or stray animal"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 transition-colors shadow-subtle whitespace-nowrap shrink-0"
+            >
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+              <span className="hidden sm:inline">Report Distress</span>
+              <span className="sm:hidden">Report</span>
+            </button>
+
+            {/* Quick Post Pet Button (Desktop only) */}
+            <button
+              onClick={onOpenCreatePet}
+              title="Post a pet for adoption or foster"
+              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 transition-colors shadow-subtle whitespace-nowrap shrink-0"
+            >
+              <PlusCircle className="w-3.5 h-3.5 text-amber-700" />
+              <span>Post Pet</span>
+            </button>
+
+            {/* Sign In (Guest) or Sign Out (User) — Single-line guaranteed */}
+            {isGuest ? (
+              <button
+                onClick={onOpenAuth}
+                className="px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-bold bg-hinge-black text-white hover:bg-neutral-800 shadow-sm transition-all whitespace-nowrap shrink-0"
+              >
+                Sign In
+              </button>
+            ) : (
+              <button
+                onClick={onSignOut}
+                title="Sign Out"
+                className="p-2 rounded-full hover:bg-neutral-100 text-neutral-500 hover:text-rose-600 transition-colors shrink-0"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* 2. Mobile Floating Bottom Navigation Bar (Visible only on mobile < md) */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-neutral-200 px-2 py-1.5 flex items-center justify-around shadow-lg select-none">
+        {/* Mobile Tab 1: Adopt */}
+        <button
+          onClick={() => setActiveTab('explore')}
+          className={`flex flex-col items-center py-1 px-3 rounded-2xl transition-all ${
+            activeTab === 'explore'
+              ? 'text-neutral-950 font-bold'
+              : 'text-neutral-400 font-medium hover:text-neutral-700'
+          }`}
+        >
+          <Sparkles className={`w-5 h-5 ${activeTab === 'explore' ? 'text-amber-500 scale-110' : ''}`} />
+          <span className="text-[10px] mt-0.5 whitespace-nowrap">Adopt</span>
+        </button>
+
+        {/* Mobile Tab 2: Radar */}
+        <button
+          onClick={() => setActiveTab('rescue')}
+          className={`relative flex flex-col items-center py-1 px-3 rounded-2xl transition-all ${
+            activeTab === 'rescue'
+              ? 'text-rose-700 font-bold'
+              : 'text-neutral-400 font-medium hover:text-neutral-700'
+          }`}
+        >
+          <AlertTriangle className={`w-5 h-5 ${activeTab === 'rescue' ? 'text-rose-600 scale-110' : ''}`} />
+          <span className="text-[10px] mt-0.5 whitespace-nowrap">Radar</span>
+          {criticalAlertsCount > 0 && (
+            <span className="absolute top-0.5 right-2 w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+          )}
+        </button>
+
+        {/* Mobile Tab 3: Messages */}
+        <button
+          onClick={() => setActiveTab('matches')}
+          className={`relative flex flex-col items-center py-1 px-3 rounded-2xl transition-all ${
+            activeTab === 'matches'
+              ? 'text-neutral-950 font-bold'
+              : 'text-neutral-400 font-medium hover:text-neutral-700'
+          }`}
+        >
+          <MessageCircleHeart className={`w-5 h-5 ${activeTab === 'matches' ? 'text-neutral-950 scale-110' : ''}`} />
+          <span className="text-[10px] mt-0.5 whitespace-nowrap">Chat</span>
+          {unreadCount > 0 && (
+            <span className="absolute top-0.5 right-2 w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+          )}
+        </button>
+
+        {/* Mobile Tab 4: Listings */}
+        <button
+          onClick={() => setActiveTab('my-pets')}
+          className={`flex flex-col items-center py-1 px-3 rounded-2xl transition-all ${
+            activeTab === 'my-pets'
+              ? 'text-neutral-950 font-bold'
+              : 'text-neutral-400 font-medium hover:text-neutral-700'
+          }`}
+        >
+          <PawPrint className={`w-5 h-5 ${activeTab === 'my-pets' ? 'text-amber-600 scale-110' : ''}`} />
+          <span className="text-[10px] mt-0.5 whitespace-nowrap">Listings</span>
+        </button>
+
+        {/* Mobile Tab 5: Profile (100% visible on mobile, never hidden) */}
+        <button
+          onClick={() => setActiveTab('profile')}
+          className={`flex flex-col items-center py-1 px-3 rounded-2xl transition-all ${
+            activeTab === 'profile'
+              ? 'text-neutral-950 font-bold'
+              : 'text-neutral-400 font-medium hover:text-neutral-700'
+          }`}
+        >
+          <User className={`w-5 h-5 ${activeTab === 'profile' ? 'text-neutral-950 scale-110' : ''}`} />
+          <span className="text-[10px] mt-0.5 whitespace-nowrap">Profile</span>
+        </button>
+      </nav>
+    </>
   );
 };

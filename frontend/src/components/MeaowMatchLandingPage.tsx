@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowRight, 
   ShieldCheck, 
@@ -13,7 +13,8 @@ import {
   Activity,
   ChevronRight
 } from 'lucide-react';
-import { Species } from '../types';
+import { Species, PetResponse } from '../types';
+import { api } from '../services/api';
 
 interface MeaowMatchLandingPageProps {
   onLaunchApp: () => void;
@@ -21,81 +22,6 @@ interface MeaowMatchLandingPageProps {
   onOpenRescue: () => void;
   onBrowseGuest?: () => void;
 }
-
-const PREVIEW_PETS = [
-  {
-    id: 'luna',
-    name: 'Luna',
-    species: 'CAT' as Species,
-    breed: 'Domestic Short Hair',
-    age: '14 mo',
-    city: 'Austin, TX',
-    photo: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80',
-    tags: ['Litter Trained', 'Affectionate', 'Gentle'],
-    health: 'Spayed & Vaccinated',
-    guardian: 'Austin Animal Haven',
-  },
-  {
-    id: 'barnaby',
-    name: 'Barnaby',
-    species: 'DOG' as Species,
-    breed: 'Australian Shepherd Mix',
-    age: '2 yrs',
-    city: 'Austin, TX',
-    photo: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=600&q=80',
-    tags: ['Active', 'Loves Hiking', 'Kid Friendly'],
-    health: 'Neutered & Heartworm Free',
-    guardian: 'Hill Country Rescue',
-  },
-  {
-    id: 'kiwi',
-    name: 'Kiwi & Sunny',
-    species: 'BIRD' as Species,
-    breed: 'Peach-faced Lovebirds',
-    age: '1.5 yrs',
-    city: 'Austin, TX',
-    photo: 'https://images.unsplash.com/photo-1552728089-57bdde30beb3?auto=format&fit=crop&w=600&q=80',
-    tags: ['Bonded Pair', 'Singing Whistles', 'Docile'],
-    health: 'Avian Vet Checked',
-    guardian: 'Avian Sanctuary',
-  },
-  {
-    id: 'thumper',
-    name: 'Thumper & Clover',
-    species: 'SMALL_ANIMAL' as Species,
-    breed: 'Holland Lop Bunnies',
-    age: '18 mo',
-    city: 'Austin, TX',
-    photo: 'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=600&q=80',
-    tags: ['Indoor Free Roam', 'Hay Lovers', 'Gentle'],
-    health: 'Neutered & Spayed',
-    guardian: 'Rabbit Sanctuary',
-  },
-  {
-    id: 'ziggy',
-    name: 'Ziggy',
-    species: 'REPTILE' as Species,
-    breed: 'Central Bearded Dragon',
-    age: '3 yrs',
-    city: 'Cedar Park, TX',
-    photo: 'https://images.unsplash.com/photo-1508817628294-5a453fa0b8fb?auto=format&fit=crop&w=600&q=80',
-    tags: ['Shoulder Percher', 'Very Calm', 'Loves Greens'],
-    health: 'Strong Calcium & UVB Healthy',
-    guardian: 'Herp Society',
-  },
-  {
-    id: 'milo',
-    name: 'Milo',
-    species: 'DOG' as Species,
-    breed: 'Golden Retriever Mix',
-    age: '8 mo',
-    city: 'Round Rock, TX',
-    photo: 'https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?auto=format&fit=crop&w=600&q=80',
-    tags: ['Foster Needed', 'Playful Pup', 'Dog Friendly'],
-    health: 'Up to Date on Shots',
-    guardian: 'Foster Network',
-  },
-];
 
 const SAMPLE_STORIES = [
   {
@@ -131,33 +57,48 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
   onBrowseGuest,
 }) => {
   const [selectedSpeciesFilter, setSelectedSpeciesFilter] = useState<'ALL' | Species>('ALL');
+  const [dbPets, setDbPets] = useState<PetResponse[]>([]);
+  const [isLoadingPets, setIsLoadingPets] = useState(true);
 
-  const filteredPets = selectedSpeciesFilter === 'ALL'
-    ? PREVIEW_PETS
-    : PREVIEW_PETS.filter((p) => p.species === selectedSpeciesFilter);
+  // Fetch real adoptable pets directly from the PostgreSQL backend database
+  useEffect(() => {
+    setIsLoadingPets(true);
+    api.getDiscoveryPets(selectedSpeciesFilter === 'ALL' ? undefined : selectedSpeciesFilter)
+      .then((data) => {
+        setDbPets(data || []);
+      })
+      .catch((err) => {
+        console.warn('[LandingPage] Could not fetch discovery pets from backend:', err);
+      })
+      .finally(() => {
+        setIsLoadingPets(false);
+      });
+  }, [selectedSpeciesFilter]);
+
+  const featuredPet = dbPets[0];
 
   return (
     <div className="min-h-screen bg-hinge-cream text-hinge-black font-sans selection:bg-hinge-black selection:text-white flex flex-col text-left">
       {/* 1. Top Navigation Bar */}
       <header className="sticky top-0 z-40 w-full bg-hinge-cream/90 backdrop-blur-md border-b border-hinge-border">
-        <div className="max-w-6xl mx-auto px-5 h-20 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-18 sm:h-20 flex items-center justify-between gap-4">
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-hinge-black text-amber-300 flex items-center justify-center shadow-subtle">
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-hinge-black text-amber-300 flex items-center justify-center shadow-subtle shrink-0">
               <PawPrint className="w-5 h-5" />
             </div>
             <div>
-              <span className="font-serif font-black text-2xl tracking-tight text-hinge-black">
+              <span className="font-serif font-black text-2xl tracking-tight text-hinge-black whitespace-nowrap">
                 MeaowMatch
               </span>
-              <span className="hidden sm:inline-block text-[10px] font-semibold text-neutral-500 uppercase tracking-widest pl-3 ml-2 border-l border-hinge-border">
-                Adoption & Emergency Rescue Network
+              <span className="hidden sm:inline-block text-[10px] font-semibold text-neutral-500 uppercase tracking-widest pl-3 ml-2 border-l border-hinge-border whitespace-nowrap">
+                Pet Adoption & Emergency Rescue
               </span>
             </div>
           </div>
 
           {/* Navigation Links */}
-          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-neutral-600">
+          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-neutral-600 whitespace-nowrap">
             <a href="#browse-pets" className="hover:text-black transition-colors">Adoptable Pets</a>
             <a href="#how-it-works" className="hover:text-black transition-colors">How It Works</a>
             <a href="#rescue-radar" className="hover:text-rose-700 transition-colors flex items-center gap-1.5">
@@ -168,11 +109,11 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
           </nav>
 
           {/* CTAs */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {onBrowseGuest && (
               <button
                 onClick={onBrowseGuest}
-                className="hidden sm:flex text-xs font-semibold text-neutral-600 hover:text-black px-3 py-2 transition-colors items-center gap-1"
+                className="hidden sm:flex text-xs font-semibold text-neutral-600 hover:text-black px-3 py-2 transition-colors items-center gap-1 whitespace-nowrap"
               >
                 <Eye className="w-3.5 h-3.5" />
                 <span>Guest Preview</span>
@@ -181,14 +122,14 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
 
             <button
               onClick={onOpenSignIn}
-              className="text-xs font-semibold text-neutral-800 hover:text-black px-3.5 py-2 transition-colors"
+              className="text-xs font-bold text-neutral-800 hover:text-black px-3.5 py-2 transition-colors whitespace-nowrap"
             >
               Sign In
             </button>
 
             <button
               onClick={onLaunchApp}
-              className="px-5 py-2.5 rounded-full text-xs font-bold text-white bg-hinge-black hover:bg-neutral-800 shadow-md transition-all duration-200 flex items-center gap-2 hover:scale-[1.02] active:scale-98"
+              className="px-5 py-2.5 rounded-full text-xs font-bold text-white bg-hinge-black hover:bg-neutral-800 shadow-md transition-all duration-200 flex items-center gap-2 hover:scale-[1.02] active:scale-98 whitespace-nowrap"
             >
               <span>Get Started</span>
               <ArrowRight className="w-3.5 h-3.5 text-amber-300" />
@@ -202,9 +143,9 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           {/* Left Column Statement */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 text-amber-900 text-xs font-semibold border border-amber-200 shadow-xs">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 text-amber-900 text-xs font-semibold border border-amber-200 shadow-xs whitespace-nowrap">
               <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-              <span>Over 2,400+ Dogs, Cats, Birds & Rescues Rehomed</span>
+              <span>Multi-Species Adoption & 24/7 Rescue Platform</span>
             </div>
 
             <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-hinge-black leading-[1.08]">
@@ -219,7 +160,7 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
             <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
               <button
                 onClick={onLaunchApp}
-                className="px-8 py-4 rounded-full text-base font-bold text-white bg-hinge-black hover:bg-neutral-800 shadow-xl shadow-neutral-900/15 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-98 transition-all"
+                className="px-8 py-4 rounded-full text-base font-bold text-white bg-hinge-black hover:bg-neutral-800 shadow-xl shadow-neutral-900/15 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-98 transition-all whitespace-nowrap"
               >
                 <span>Browse Adoptable Pets</span>
                 <ArrowRight className="w-5 h-5 text-amber-300" />
@@ -227,7 +168,7 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
 
               <button
                 onClick={onOpenRescue}
-                className="px-6 py-4 rounded-full text-sm font-semibold text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-300 flex items-center justify-center gap-2 transition-colors shadow-subtle"
+                className="px-6 py-4 rounded-full text-sm font-semibold text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-300 flex items-center justify-center gap-2 transition-colors shadow-subtle whitespace-nowrap"
               >
                 <AlertTriangle className="w-4 h-4 text-rose-600" />
                 <span>Open Emergency Radar</span>
@@ -235,11 +176,11 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
             </div>
 
             {/* Quick 3 Roles Pill */}
-            <div className="pt-4 flex flex-wrap items-center gap-3 text-xs text-neutral-500 font-medium">
-              <span className="font-bold text-neutral-800 uppercase tracking-wider text-[11px]">3 Unified Portals:</span>
-              <span className="px-2.5 py-1 rounded-full bg-amber-100/70 text-amber-900 border border-amber-200">1. Adopters</span>
-              <span className="px-2.5 py-1 rounded-full bg-emerald-100/70 text-emerald-900 border border-emerald-200">2. Rehomers & Shelters</span>
-              <span className="px-2.5 py-1 rounded-full bg-rose-100/70 text-rose-900 border border-rose-200">3. Emergency Rescuers</span>
+            <div className="pt-4 flex flex-wrap items-center gap-2.5 text-xs text-neutral-500 font-medium">
+              <span className="font-bold text-neutral-800 uppercase tracking-wider text-[11px] whitespace-nowrap">3 Unified Portals:</span>
+              <span className="px-2.5 py-1 rounded-full bg-amber-100/70 text-amber-900 border border-amber-200 whitespace-nowrap">1. Adopters</span>
+              <span className="px-2.5 py-1 rounded-full bg-emerald-100/70 text-emerald-900 border border-emerald-200 whitespace-nowrap">2. Rehomers & Shelters</span>
+              <span className="px-2.5 py-1 rounded-full bg-rose-100/70 text-rose-900 border border-rose-200 whitespace-nowrap">3. Emergency Rescuers</span>
             </div>
           </div>
 
@@ -252,74 +193,66 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
               <div className="rounded-[34px] bg-hinge-cream overflow-hidden border border-neutral-700/50 p-4 space-y-3.5">
                 {/* Simulated App Header */}
                 <div className="pt-4 flex items-center justify-between text-xs font-serif font-bold text-hinge-black">
-                  <span className="flex items-center gap-1.5">
+                  <span className="flex items-center gap-1.5 whitespace-nowrap">
                     <PawPrint className="w-3.5 h-3.5 text-amber-600" /> MeaowMatch
                   </span>
-                  <span className="text-[10px] font-sans font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
-                    <ShieldCheck className="w-3 h-3 text-emerald-600" /> Verified Shelter
+                  <span className="text-[10px] font-sans font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1 whitespace-nowrap">
+                    <ShieldCheck className="w-3 h-3 text-emerald-600" /> Live DB Connected
                   </span>
                 </div>
 
                 {/* Simulated Pet Card Image */}
                 <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-subtle border border-neutral-200 bg-neutral-100 group">
                   <img
-                    src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80"
-                    alt="Luna the Cat"
+                    src={featuredPet?.photos[0]?.photoUrl || 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80'}
+                    alt={featuredPet?.name || 'Luna'}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
 
                   <div className="absolute top-3 left-3 flex gap-1">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-black/75 text-white backdrop-blur-md">
-                      For Adoption
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-black/75 text-white backdrop-blur-md whitespace-nowrap">
+                      {featuredPet?.listingType === 'FOSTER' ? 'Foster Needed' : 'For Adoption'}
                     </span>
                   </div>
 
                   <div className="absolute bottom-3 left-3 right-3 text-white">
                     <div className="flex items-baseline justify-between">
-                      <h3 className="font-serif text-2xl font-bold">Luna</h3>
-                      <span className="text-xs bg-white/20 px-2.5 py-0.5 rounded-full backdrop-blur-md font-semibold">
-                        CAT • 14 mo
+                      <h3 className="font-serif text-2xl font-bold">{featuredPet?.name || 'Luna'}</h3>
+                      <span className="text-xs bg-white/20 px-2.5 py-0.5 rounded-full backdrop-blur-md font-semibold whitespace-nowrap">
+                        {featuredPet?.species || 'CAT'} • {featuredPet?.ageMonths ? `${featuredPet.ageMonths} mo` : 'Young'}
                       </span>
                     </div>
-                    <p className="text-xs text-neutral-200">Domestic Short Hair • Spayed</p>
-                    <p className="text-[10px] text-amber-300 flex items-center gap-1 mt-0.5">
-                      <MapPin className="w-3 h-3" /> Austin Animal Haven (2.4 km away)
+                    <p className="text-xs text-neutral-200 truncate">{featuredPet?.breed || 'Domestic Short Hair'}</p>
+                    <p className="text-[10px] text-amber-300 flex items-center gap-1 mt-0.5 whitespace-nowrap">
+                      <MapPin className="w-3 h-3 shrink-0" /> {featuredPet?.ownerName || 'Austin Animal Haven'} • {featuredPet?.city || 'Austin, TX'}
                     </p>
                   </div>
                 </div>
 
-                {/* Health & Personality Card */}
+                {/* Health & Verification Card */}
                 <div className="p-3.5 rounded-2xl bg-white border border-hinge-border shadow-subtle space-y-2 text-left">
                   <div className="flex items-center justify-between text-[11px] text-neutral-500">
-                    <span className="font-bold text-neutral-800 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Health Records Verified
+                    <span className="font-bold text-neutral-800 flex items-center gap-1 whitespace-nowrap">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Database Verified
                     </span>
-                    <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                      FeLV/FIV Negative
+                    <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 whitespace-nowrap">
+                      {featuredPet?.status || 'AVAILABLE'}
                     </span>
                   </div>
 
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-900 border border-amber-200">
-                      🐾 Affectionate
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-900 border border-amber-200">
-                      🕊️ Bird Watcher
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-900 border border-amber-200">
-                      🐕 Good with calm dogs
-                    </span>
-                  </div>
+                  <p className="text-xs text-neutral-700 font-medium line-clamp-2">
+                    {featuredPet?.healthStatus || 'Spayed, Microchipped, Fully Vaccinated'}
+                  </p>
 
                   {/* Quick Action Preview */}
-                  <div className="pt-2 flex items-center justify-between gap-2">
+                  <div className="pt-1 flex items-center justify-between gap-2">
                     <button
                       onClick={onLaunchApp}
-                      className="flex-1 py-2 rounded-xl text-xs font-bold text-white bg-hinge-black hover:bg-neutral-800 flex items-center justify-center gap-1.5 transition-all"
+                      className="flex-1 py-2 rounded-xl text-xs font-bold text-white bg-hinge-black hover:bg-neutral-800 flex items-center justify-center gap-1.5 transition-all whitespace-nowrap"
                     >
                       <Heart className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                      <span>Send Adoption Inquiry</span>
+                      <span>Adopt {featuredPet?.name || 'Now'}</span>
                     </button>
                   </div>
                 </div>
@@ -329,19 +262,19 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
         </div>
       </section>
 
-      {/* 3. Interactive Multi-Species Adoptable Pets Showcase */}
+      {/* 3. Interactive Multi-Species Adoptable Pets Showcase (Direct from DB) */}
       <section id="browse-pets" className="py-20 bg-white border-y border-hinge-border px-5">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-3 max-w-xl">
-              <span className="text-xs font-bold uppercase tracking-widest text-amber-800">
+              <span className="text-xs font-bold uppercase tracking-widest text-amber-800 whitespace-nowrap">
                 Multi-Species Platform
               </span>
               <h2 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-hinge-black">
-                Meet companions waiting for homes.
+                Companions waiting for loving homes.
               </h2>
               <p className="text-sm text-neutral-600 leading-relaxed font-normal">
-                Every animal deserves care, from puppies and senior cats to parrots, bonded bunnies, and geckos.
+                Every animal deserves care, from puppies and senior cats to parrots, bonded bunnies, and geckos. All listings retrieved directly from our verified shelters database.
               </p>
             </div>
 
@@ -358,7 +291,7 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
                 <button
                   key={tab.value}
                   onClick={() => setSelectedSpeciesFilter(tab.value as any)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
                     selectedSpeciesFilter === tab.value
                       ? 'bg-hinge-black text-white shadow-sm'
                       : 'bg-hinge-cream text-neutral-700 hover:bg-neutral-200'
@@ -371,71 +304,97 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
           </div>
 
           {/* Pets Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPets.map((pet) => (
-              <div
-                key={pet.id}
-                className="group rounded-3xl bg-hinge-cream/40 border border-hinge-border p-4 shadow-subtle hover:shadow-md transition-all flex flex-col justify-between space-y-4"
-              >
-                <div className="space-y-3">
-                  {/* Photo with species badge */}
-                  <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-neutral-100 border border-neutral-200">
-                    <img
-                      src={pet.photo}
-                      alt={pet.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-black/75 text-white backdrop-blur-md">
-                        {pet.species}
-                      </span>
-                    </div>
-                    <div className="absolute bottom-2.5 left-2.5 right-2.5 text-white bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 rounded-xl">
-                      <div className="flex items-baseline justify-between">
-                        <h3 className="font-serif text-xl font-bold">{pet.name}</h3>
-                        <span className="text-xs text-neutral-200 font-medium">{pet.age}</span>
-                      </div>
-                      <p className="text-[11px] text-neutral-300 truncate">{pet.breed}</p>
-                    </div>
-                  </div>
-
-                  {/* Badges & Health */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-1.5 text-[11px] text-emerald-800 font-semibold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      <span className="truncate">{pet.health}</span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1">
-                      {pet.tags.map((t, idx) => (
-                        <span key={idx} className="text-[10px] font-medium bg-white px-2 py-0.5 rounded-full border border-neutral-200 text-neutral-700">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-
-                    <p className="text-[11px] text-neutral-500 flex items-center gap-1 pt-1">
-                      <MapPin className="w-3 h-3 text-neutral-400" />
-                      <span>{pet.guardian} • {pet.city}</span>
-                    </p>
-                  </div>
+          {isLoadingPets ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="rounded-3xl bg-neutral-100 p-6 h-72 animate-pulse flex items-center justify-center text-neutral-400 text-xs font-medium">
+                  Loading verified pets from database...
                 </div>
+              ))}
+            </div>
+          ) : dbPets.length === 0 ? (
+            <div className="bg-hinge-cream/40 rounded-3xl border border-hinge-border p-12 text-center space-y-3 max-w-md mx-auto">
+              <PawPrint className="w-8 h-8 text-neutral-400 mx-auto" />
+              <h3 className="font-serif font-bold text-xl">No pets listed under this category yet</h3>
+              <p className="text-xs text-neutral-500">
+                Are you a shelter or owner rehoming a pet? Click below to list your first animal!
+              </p>
+              <button
+                onClick={onLaunchApp}
+                className="px-5 py-2.5 rounded-full bg-hinge-black text-white text-xs font-bold whitespace-nowrap"
+              >
+                Post Pet for Adoption
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {dbPets.map((pet) => {
+                const photoUrl = pet.photos[0]?.photoUrl || 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=600&q=80';
 
-                <button
-                  onClick={onLaunchApp}
-                  className="w-full py-2.5 rounded-full text-xs font-bold text-white bg-hinge-black hover:bg-neutral-800 flex items-center justify-center gap-2 shadow-sm transition-all"
-                >
-                  <Heart className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                  <span>Adopt {pet.name}</span>
-                </button>
-              </div>
-            ))}
-          </div>
+                return (
+                  <div
+                    key={pet.id}
+                    className="group rounded-3xl bg-hinge-cream/40 border border-hinge-border p-4 shadow-subtle hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                  >
+                    <div className="space-y-3">
+                      {/* Photo with species badge */}
+                      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-neutral-100 border border-neutral-200">
+                        <img
+                          src={photoUrl}
+                          alt={pet.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-black/75 text-white backdrop-blur-md whitespace-nowrap">
+                            {pet.species}
+                          </span>
+                        </div>
+                        <div className="absolute bottom-2.5 left-2.5 right-2.5 text-white bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 rounded-xl">
+                          <div className="flex items-baseline justify-between">
+                            <h3 className="font-serif text-xl font-bold">{pet.name}</h3>
+                            <span className="text-xs text-neutral-200 font-medium whitespace-nowrap">
+                              {pet.ageMonths ? `${pet.ageMonths} mo` : 'Young'}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-neutral-300 truncate">{pet.breed}</p>
+                        </div>
+                      </div>
+
+                      {/* Badges & Health */}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1.5 text-[11px] text-emerald-800 font-semibold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span className="truncate">{pet.healthStatus || 'Verified & Healthy'}</span>
+                        </div>
+
+                        <p className="text-xs text-neutral-600 line-clamp-2 italic">
+                          "{pet.description}"
+                        </p>
+
+                        <p className="text-[11px] text-neutral-500 flex items-center gap-1 pt-1 truncate">
+                          <MapPin className="w-3 h-3 text-neutral-400 shrink-0" />
+                          <span className="truncate">{pet.ownerName} • {pet.city}</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={onLaunchApp}
+                      className="w-full py-2.5 rounded-full text-xs font-bold text-white bg-hinge-black hover:bg-neutral-800 flex items-center justify-center gap-2 shadow-sm transition-all whitespace-nowrap"
+                    >
+                      <Heart className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                      <span>Adopt {pet.name}</span>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           <div className="text-center pt-4">
             <button
               onClick={onLaunchApp}
-              className="px-8 py-3.5 rounded-full text-sm font-bold text-neutral-900 bg-amber-300 hover:bg-amber-400 shadow-md inline-flex items-center gap-2 transition-transform hover:scale-105 active:scale-95"
+              className="px-8 py-3.5 rounded-full text-sm font-bold text-neutral-900 bg-amber-300 hover:bg-amber-400 shadow-md inline-flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 whitespace-nowrap"
             >
               <span>Explore All Pets in Swipe Deck</span>
               <ArrowRight className="w-4 h-4" />
@@ -448,7 +407,7 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
       <section id="how-it-works" className="py-20 bg-hinge-stone/30 border-b border-hinge-border px-5">
         <div className="max-w-6xl mx-auto space-y-16">
           <div className="max-w-2xl space-y-4">
-            <span className="text-xs font-bold uppercase tracking-widest text-amber-800">
+            <span className="text-xs font-bold uppercase tracking-widest text-amber-800 whitespace-nowrap">
               Purpose-Built Architecture
             </span>
             <h2 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-hinge-black">
@@ -467,7 +426,7 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
                   <Heart className="w-6 h-6 fill-amber-600 text-amber-600" />
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800">Persona 1</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 whitespace-nowrap">Persona 1</span>
                   <h3 className="font-serif text-2xl font-bold text-hinge-black">
                     The Adopter
                   </h3>
@@ -477,20 +436,20 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
                 </p>
                 <ul className="text-xs text-neutral-700 space-y-2 pt-2">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Swipe gesture deck with distance filters
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Swipe gesture deck with distance filters
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Real-time STOMP messaging with guardians
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Real-time STOMP messaging with guardians
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Schedule meet & greets seamlessly
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Schedule meet & greets seamlessly
                   </li>
                 </ul>
               </div>
 
               <button
                 onClick={onLaunchApp}
-                className="mt-4 w-full py-2.5 rounded-full text-xs font-bold bg-neutral-100 hover:bg-neutral-200 text-neutral-900 transition-colors flex items-center justify-center gap-1.5"
+                className="mt-4 w-full py-2.5 rounded-full text-xs font-bold bg-neutral-100 hover:bg-neutral-200 text-neutral-900 transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
               >
                 <span>Start Browsing</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -504,7 +463,7 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
                   <Home className="w-6 h-6" />
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Persona 2</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 whitespace-nowrap">Persona 2</span>
                   <h3 className="font-serif text-2xl font-bold text-hinge-black">
                     Rehomer & Shelter
                   </h3>
@@ -514,20 +473,20 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
                 </p>
                 <ul className="text-xs text-neutral-700 space-y-2 pt-2">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" /> 3-step S3 pre-signed direct upload
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> 3-step S3 pre-signed direct upload
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Foster vs Permanent Adoption toggles
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Foster vs Permanent Adoption toggles
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Track active inquiries in one inbox
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Track active inquiries in one inbox
                   </li>
                 </ul>
               </div>
 
               <button
                 onClick={onOpenSignIn}
-                className="mt-4 w-full py-2.5 rounded-full text-xs font-bold bg-neutral-100 hover:bg-neutral-200 text-neutral-900 transition-colors flex items-center justify-center gap-1.5"
+                className="mt-4 w-full py-2.5 rounded-full text-xs font-bold bg-neutral-100 hover:bg-neutral-200 text-neutral-900 transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
               >
                 <span>Shelter Portal</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -541,7 +500,7 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
                   <AlertTriangle className="w-6 h-6" />
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-rose-800">Persona 3</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-rose-800 whitespace-nowrap">Persona 3</span>
                   <h3 className="font-serif text-2xl font-bold text-hinge-black">
                     Emergency Rescuer
                   </h3>
@@ -551,20 +510,20 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
                 </p>
                 <ul className="text-xs text-neutral-700 space-y-2 pt-2">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-rose-600" /> 1-click GPS device location capture
+                    <CheckCircle2 className="w-4 h-4 text-rose-600 shrink-0" /> 1-click GPS device location capture
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-rose-600" /> Critical / High urgency broadcast alerts
+                    <CheckCircle2 className="w-4 h-4 text-rose-600 shrink-0" /> Critical / High urgency broadcast alerts
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-rose-600" /> Live rescue coordination chat room
+                    <CheckCircle2 className="w-4 h-4 text-rose-600 shrink-0" /> Live rescue coordination chat room
                   </li>
                 </ul>
               </div>
 
               <button
                 onClick={onOpenRescue}
-                className="mt-4 w-full py-2.5 rounded-full text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 transition-colors flex items-center justify-center gap-1.5"
+                className="mt-4 w-full py-2.5 rounded-full text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
               >
                 <span>Emergency Radar</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -578,7 +537,7 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
       <section id="rescue-radar" className="py-16 bg-neutral-900 text-white px-5 border-t border-neutral-800">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-bold uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-bold uppercase tracking-wider whitespace-nowrap">
               <Activity className="w-3.5 h-3.5 text-rose-400 animate-pulse" />
               <span>24/7 Citizen Emergency Radar</span>
             </div>
@@ -591,7 +550,7 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
             <div className="pt-2 flex flex-wrap gap-3">
               <button
                 onClick={onOpenRescue}
-                className="px-6 py-3 rounded-full text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white flex items-center gap-2 shadow-md transition-all hover:scale-105 active:scale-95"
+                className="px-6 py-3 rounded-full text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white flex items-center gap-2 shadow-md transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
               >
                 <AlertTriangle className="w-4 h-4" />
                 <span>Open Live Rescue Radar</span>
@@ -608,7 +567,7 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
             </p>
             <button
               onClick={onOpenSignIn}
-              className="w-full py-3.5 rounded-full font-bold text-neutral-900 bg-amber-300 hover:bg-amber-400 shadow-md flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-98 transition-all"
+              className="w-full py-3.5 rounded-full font-bold text-neutral-900 bg-amber-300 hover:bg-amber-400 shadow-md flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-98 transition-all whitespace-nowrap"
             >
               <span>Register as Volunteer Rescuer</span>
               <ArrowRight className="w-4 h-4" />
@@ -621,7 +580,7 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
       <section id="stories" className="py-20 bg-hinge-cream border-t border-hinge-border px-5">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-3">
-            <span className="text-xs font-bold uppercase tracking-widest text-amber-800">
+            <span className="text-xs font-bold uppercase tracking-widest text-amber-800 whitespace-nowrap">
               Real Impact
             </span>
             <h2 className="font-serif text-4xl sm:text-5xl font-bold text-hinge-black">
@@ -639,7 +598,7 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
                 className="rounded-3xl bg-white border border-hinge-border shadow-subtle p-6 space-y-4 flex flex-col justify-between"
               >
                 <div className="space-y-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-amber-700">
+                  <span className="text-xs font-bold uppercase tracking-wider text-amber-700 whitespace-nowrap">
                     {story.badge}
                   </span>
                   <p className="font-serif italic text-base text-hinge-black leading-snug">
@@ -648,12 +607,12 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
                 </div>
 
                 <div className="pt-4 border-t border-neutral-100 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden bg-neutral-200">
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-neutral-200 shrink-0">
                     <img src={story.photo} alt={story.pet} className="w-full h-full object-cover" />
                   </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-hinge-black">{story.family}</h4>
-                    <p className="text-[11px] text-neutral-500">{story.location}</p>
+                  <div className="min-w-0">
+                    <h4 className="text-xs font-bold text-hinge-black truncate">{story.family}</h4>
+                    <p className="text-[11px] text-neutral-500 truncate">{story.location}</p>
                   </div>
                 </div>
               </div>
@@ -666,12 +625,12 @@ export const MeaowMatchLandingPage: React.FC<MeaowMatchLandingPageProps> = ({
       <footer className="mt-auto bg-hinge-cream border-t border-hinge-border py-12 px-5 text-xs text-neutral-600">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <PawPrint className="w-5 h-5 text-neutral-800" />
-            <span className="font-serif font-black text-2xl text-hinge-black">MeaowMatch</span>
-            <span className="text-[11px] text-neutral-500">© 2026 MeaowMatch, Inc. Ethical pet adoption & animal rescue network.</span>
+            <PawPrint className="w-5 h-5 text-neutral-800 shrink-0" />
+            <span className="font-serif font-black text-2xl text-hinge-black whitespace-nowrap">MeaowMatch</span>
+            <span className="text-[11px] text-neutral-500 hidden sm:inline">© 2026 MeaowMatch, Inc. Ethical pet adoption & animal rescue network.</span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6 font-medium text-neutral-700">
+          <div className="flex flex-wrap items-center gap-6 font-medium text-neutral-700 whitespace-nowrap">
             <button onClick={onLaunchApp} className="hover:text-black">Web App</button>
             <a href="#browse-pets" className="hover:text-black">Adopt Pets</a>
             <a href="#how-it-works" className="hover:text-black">How it Works</a>

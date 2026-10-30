@@ -310,7 +310,7 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 flex flex-col">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 pb-24 md:pb-6 flex flex-col">
         {/* 1. Pet Adoption Deck View */}
         {activeTab === 'explore' && (
           <div className="flex-1 flex flex-col justify-center py-4">
