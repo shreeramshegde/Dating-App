@@ -1,0 +1,1 @@
+../frontend/update-backend-url.sh
